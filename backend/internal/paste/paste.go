@@ -1,4 +1,4 @@
-package service
+package pasteService
 
 import (
 	"errors"
