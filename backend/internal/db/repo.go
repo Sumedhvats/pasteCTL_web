@@ -15,16 +15,17 @@ type Paste struct {
 }
 
 func CreatePaste (p *Paste) error{
-	_,err:=DB.Exec(context.Background(),"INSERT INTO pastes(id,content,language,expire_at) VALUES($1,$2,$3)",p.ID,p.Content,p.Language,p.ExpireAt)
+	_,err:=DB.Exec(context.Background(),"INSERT INTO pastes(id,content,language,expire_at) VALUES($1,$2,$3,$4)",p.ID,p.Content,p.Language,p.ExpireAt)
 	return err
 }
 
 func UpdatePaste(p *Paste)error{
-	_,err:=DB.Exec(context.Background(),"UPDATE PASTE SET content = $1,Language = $2 WHERE ID = $3",p.Content,p.Language,p.ID)
+	_,err:=DB.Exec(context.Background(),"UPDATE pastes SET content = $1,Language = $2 WHERE ID = $3",p.Content,p.Language,p.ID)
 	return err
 }
-func UpdateViews(p *Paste)error{
-	_,err:=DB.Exec(context.Background(),"UPDATE PASTE SET views=",p.Views)
+func UpdateViews(p *Paste,count int)error{
+	_,err:=DB.Exec(context.Background(),"UPDATE pastes SET views=views+$1 where id=$2 ",count,p.ID)
+
 	return err
 }
 
@@ -40,7 +41,7 @@ func GetPaste(ID string)(*Paste,error){
 }
 func GetContent(ID string)(string,error){
 
-	row:=DB.QueryRow(context.Background(), "SELECT content WHERE id=$1",ID)
+	row:=DB.QueryRow(context.Background(), "SELECT content from pastes WHERE id=$1",ID)
 	var st string
 	err:=row.Scan(&st)
 	if err!=nil{
