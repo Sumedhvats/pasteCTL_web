@@ -1,0 +1,50 @@
+package db
+
+import (
+	"context"
+	"time"
+)
+
+type Paste struct {
+	ID        string
+	Content   string
+	Language  string
+	CreatedAt time.Time
+	ExpireAt  *time.Time
+	Views     int
+}
+
+func CreatePaste (p *Paste) error{
+	_,err:=DB.Exec(context.Background(),"INSERT INTO pastes(id,content,language,expire_at) VALUES($1,$2,$3)",p.ID,p.Content,p.Language,p.ExpireAt)
+	return err
+}
+
+func UpdatePaste(p *Paste)error{
+	_,err:=DB.Exec(context.Background(),"UPDATE PASTE SET content = $1,Language = $2 WHERE ID = $3",p.Content,p.Language,p.ID)
+	return err
+}
+func UpdateViews(p *Paste)error{
+	_,err:=DB.Exec(context.Background(),"UPDATE PASTE SET views=",p.Views)
+	return err
+}
+
+func GetPaste(ID string)(*Paste,error){
+
+	row:=DB.QueryRow(context.Background(), "SELECT id, content, language, created_at, expire_at, views FROM pastes WHERE id=$1",ID)
+	pp:=&Paste{}
+	err:=row.Scan(&pp.ID,&pp.Content,&pp.Language,&pp.CreatedAt,&pp.ExpireAt,&pp.Views)
+	if err!=nil{
+		return nil,err
+	}
+	return pp,nil
+}
+func GetContent(ID string)(string,error){
+
+	row:=DB.QueryRow(context.Background(), "SELECT content WHERE id=$1",ID)
+	var st string
+	err:=row.Scan(&st)
+	if err!=nil{
+		return "",err
+	}
+	return st,nil
+}
