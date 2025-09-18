@@ -5,23 +5,15 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Sumedhvats/pasteCTL/internal/db"
+	"github.com/Sumedhvats/pasteCTL/internal/pasteService"
 	"github.com/gin-gonic/gin"
 )
 
-type PasteService interface {
-	CreatePaste(content string, lang string, expireMinutes int) (*db.Paste, error)
-	GetPaste(id string) (*db.Paste, error)
-	GetContent(id string) (string, error)
-	UpdatePaste(id string,content string, lang string)(*db.Paste,error)
-	UpdateViews(id string,count int)(*db.Paste,error)
-
-}
 type Handler struct {
-	Service PasteService
+	Service pasteService.PasteService
 }
 
-func NewHandler(svc PasteService) *Handler {
+func NewHandler(svc pasteService.PasteService) *Handler {
 	return &Handler{
 		Service: svc,
 	}
@@ -65,51 +57,51 @@ func (h *Handler) UpdatePasteHandler(c *gin.Context) {
 	if err := c.Bind(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid or incomplete request"})
 	}
-	p,err:=h.Service.UpdatePaste(req.ID,req.Content,req.Language)
-	if err!=nil{
-		c.JSON(http.StatusInternalServerError,gin.H{"error": "Failed to update paste"})
+	p, err := h.Service.UpdatePaste(req.ID, req.Content, req.Language)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update paste"})
 		return
 	}
-	c.JSON(http.StatusOK,p)
+	c.JSON(http.StatusOK, p)
 }
 
-func (h *Handler)UpdateViewsHandler(c *gin.Context){
+func (h *Handler) UpdateViewsHandler(c *gin.Context) {
 	id := c.Param("id")
-    if id == "" {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Paste ID is required"})
-        return
-    }
-	p,err:=h.Service.UpdateViews(id,1)
-	if err!=nil {
-		c.JSON(http.StatusInternalServerError,gin.H{"error": "Failed to update views"})
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Paste ID is required"})
 		return
 	}
-	c.JSON(http.StatusOK,p)
+	p, err := h.Service.UpdateViews(id, 1)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update views"})
+		return
+	}
+	c.JSON(http.StatusOK, p)
 }
-func (h *Handler)GetPasteHandler(c *gin.Context){
-	 id := c.Param("id")
-    if id == "" {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Paste ID is required"})
-        return
-    }
+func (h *Handler) GetPasteHandler(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Paste ID is required"})
+		return
+	}
 
-	p,err:=h.Service.GetPaste(id)
-	if err!=nil {
-		c.JSON(http.StatusInternalServerError,gin.H{"error": "Failed to update views"})
+	p, err := h.Service.GetPaste(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update views"})
 		return
 	}
-	c.JSON(http.StatusOK,p)
+	c.JSON(http.StatusOK, p)
 }
- func (h *Handler)GetContentHandler(c *gin.Context){
+func (h *Handler) GetContentHandler(c *gin.Context) {
 	id := c.Param("id")
-    if id == "" {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Paste ID is required"})
-        return
-    }
-	p,err:=h.Service.GetPaste(id)
-	if err!=nil {
-		c.JSON(http.StatusInternalServerError,gin.H{"error": "Failed to update views"})
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Paste ID is required"})
 		return
 	}
-	c.JSON(http.StatusOK,p.Content)
+	p, err := h.Service.GetPaste(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update views"})
+		return
+	}
+	c.JSON(http.StatusOK, p.Content)
 }
