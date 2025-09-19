@@ -18,7 +18,6 @@ type Repository interface {
 	UpdatePaste(p *Paste) error
 	UpdateViews(p *Paste, count int) error
 	GetPaste(id string) (*Paste, error)
-	GetContent(id string) (string, error)
 	DeleteExpired()(error)
 }
 type repo struct {
@@ -52,16 +51,7 @@ func (r *repo) GetPaste(ID string) (*Paste, error) {
 	}
 	return pp, nil
 }
-func (r *repo) GetContent(ID string) (string, error) {
 
-	row := DB.QueryRow(context.Background(), "SELECT content from pastes WHERE id=$1", ID)
-	var st string
-	err := row.Scan(&st)
-	if err != nil {
-		return "", err
-	}
-	return st, nil
-}
 func (r *repo) DeleteExpired() error {
 	_, err := DB.Exec(context.Background(), "DELETE FROM pastes WHERE expire_at IS NOT NULL AND expire_at < NOW()")
 	return err

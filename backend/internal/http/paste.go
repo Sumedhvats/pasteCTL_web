@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Sumedhvats/pasteCTL/internal/pasteService"
+	pasteService "github.com/Sumedhvats/pasteCTL/internal/paste"
 	"github.com/gin-gonic/gin"
 )
 

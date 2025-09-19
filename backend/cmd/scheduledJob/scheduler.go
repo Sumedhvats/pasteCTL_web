@@ -4,7 +4,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Sumedhvats/pasteCTL/internal/pasteService"
+	pasteService "github.com/Sumedhvats/pasteCTL/internal/paste"
 )
 func StartScheduler(svc pasteService.PasteService) {
 	// Create a Ticker that ticks every 2 hours

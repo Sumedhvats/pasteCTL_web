@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/Sumedhvats/pasteCTL/internal/db"
-	"github.com/Sumedhvats/pasteCTL/internal/pkg"
+	"github.com/Sumedhvats/pasteCTL/pkg"
 )
 type PasteService interface {
 	CreatePaste(content string, lang string, expireMinutes int) (*db.Paste, error)
@@ -98,7 +98,16 @@ paste, err := s.repo.GetPaste(id)
 	return paste, nil
 }
 func (s *pasteService)GetContent(id string)(string,error){
-	return s.repo.GetContent(id)
+	paste, err := s.repo.GetPaste(id)
+	if err != nil {
+		return "", err
+	}
+
+	if paste.ExpireAt != nil && time.Now().After(*paste.ExpireAt) {
+		return "", errors.New("paste has expired")
+	}
+
+	return paste.Content, nil
 }
 func (s *pasteService)DeleteExpiredPastes()error{
 	return s.repo.DeleteExpired()
