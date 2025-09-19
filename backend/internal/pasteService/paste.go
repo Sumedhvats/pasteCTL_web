@@ -14,7 +14,7 @@ type PasteService interface {
 	GetContent(id string) (string, error)
 	UpdatePaste(id string,content string, lang string)(*db.Paste,error)
 	UpdateViews(id string,count int)(*db.Paste,error)
-
+	DeleteExpiredPastes()error
 
 }
 type pasteService struct{
@@ -51,7 +51,6 @@ func (s *pasteService)CreatePaste(content string, lang string, expireMinutes int
 			return paste, nil
 		}
 
-		// A more robust solution would be to check for a specific database error code.
 		if err.Error() != "unique constraint violation" {
 			return nil, err
 		}
@@ -87,8 +86,20 @@ func (s *pasteService)UpdateViews(id string,count int)(*db.Paste,error){
 	return paste,nil
 }
 func(s *pasteService) GetPaste(id string)(*db.Paste,error){
-return  s.repo.GetPaste(id)
+paste, err := s.repo.GetPaste(id)
+	if err != nil {
+		return nil, err
+	}
+
+	if paste.ExpireAt != nil && time.Now().After(*paste.ExpireAt) {
+		return nil, errors.New("paste has expired")
+	}
+
+	return paste, nil
 }
 func (s *pasteService)GetContent(id string)(string,error){
 	return s.repo.GetContent(id)
+}
+func (s *pasteService)DeleteExpiredPastes()error{
+	return s.repo.DeleteExpired()
 }
