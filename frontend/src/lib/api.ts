@@ -1,13 +1,13 @@
 // API utilities for PasteGo backend integration
 
-const API_BASE = "http://localhost:8080/api";
+const API_BASE = "http://localhost:8081/api";
 
 export interface Paste {
   id: string;
   content: string;
   language: string;
-  created_at: string;
   expire_at?: string;
+  created_at:string;
   views: number;
 }
 
@@ -15,6 +15,11 @@ export interface CreatePasteRequest {
   content: string;
   language: string;
   expire_at?: string;
+}
+
+export interface UpdatePasteRequest {
+  content: string;
+  language: string;
 }
 
 export const api = {
@@ -59,6 +64,18 @@ export const api = {
     
     if (!response.ok) {
       throw new Error(`Failed to update views: ${response.statusText}`);
+    }
+  },
+  
+  async updatePaste(id: string, data: UpdatePasteRequest): Promise<void> {
+    const response = await fetch(`${API_BASE}/pastes/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to update paste: ${response.statusText}`);
     }
   },
 };

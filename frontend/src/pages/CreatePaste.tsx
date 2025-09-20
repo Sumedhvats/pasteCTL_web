@@ -32,7 +32,7 @@ const expiryOptions = [
 export default function CreatePaste() {
   const [content, setContent] = useState("");
   const [language, setLanguage] = useState("plain");
-  const [expiry, setExpiry] = useState("never");
+  const [expiry, setExpiry] = useState("24h");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
