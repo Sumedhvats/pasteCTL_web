@@ -1,0 +1,174 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* PasteGo Dark Theme Design System */
+
+@layer base {
+  :root {
+    /* Dark theme base - inspired by your color palette */
+    --background: 210 24% 16%;         /* Dark navy blue */
+    --foreground: 210 40% 98%;         /* Light text */
+
+    --card: 210 20% 20%;               /* Slightly lighter dark */
+    --card-foreground: 210 40% 98%;
+
+    --popover: 210 20% 20%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 174 44% 51%;            /* Teal accent from your palette */
+    --primary-foreground: 210 24% 16%;
+
+    --secondary: 210 15% 25%;          /* Muted gray from palette */
+    --secondary-foreground: 210 40% 90%;
+
+    --muted: 210 15% 25%;
+    --muted-foreground: 210 20% 65%;
+
+    --accent: 174 44% 51%;             /* Teal accent */
+    --accent-foreground: 210 24% 16%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 210 15% 30%;             /* Subtle borders */
+    --input: 210 15% 25%;              /* Input backgrounds */
+    --ring: 174 44% 51%;               /* Focus ring in teal */
+
+    --radius: 0.75rem;
+
+    /* Code editor specific colors */
+    --editor-bg: 210 20% 18%;
+    --editor-line-number: 210 15% 45%;
+    --editor-line-number-active: 174 44% 51%;
+    --editor-selection: 174 44% 51% / 0.2;
+
+    /* Syntax highlighting colors */
+    --syntax-keyword: 280 100% 70%;    /* Purple for keywords */
+    --syntax-string: 120 100% 65%;     /* Green for strings */
+    --syntax-comment: 210 15% 55%;     /* Gray for comments */
+    --syntax-function: 45 100% 65%;    /* Yellow for functions */
+    --syntax-number: 15 100% 70%;      /* Orange for numbers */
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  /* Light mode disabled - using dark theme only */
+  .light {
+    /* Same as root - maintaining dark theme */
+    --background: 210 24% 16%;
+    --foreground: 210 40% 98%;
+    --card: 210 20% 20%;
+    --card-foreground: 210 40% 98%;
+    --popover: 210 20% 20%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 174 44% 51%;
+    --primary-foreground: 210 24% 16%;
+    --secondary: 210 15% 25%;
+    --secondary-foreground: 210 40% 90%;
+    --muted: 210 15% 25%;
+    --muted-foreground: 210 20% 65%;
+    --accent: 174 44% 51%;
+    --accent-foreground: 210 24% 16%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 210 15% 30%;
+    --input: 210 15% 25%;
+    --ring: 174 44% 51%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', monospace;
+  }
+
+  /* Code editor styles */
+  .code-editor {
+    @apply bg-[hsl(var(--editor-bg))] rounded-lg;
+  }
+
+  .line-numbers {
+    @apply text-[hsl(var(--editor-line-number))] select-none;
+  }
+
+  .line-numbers .active {
+    @apply text-[hsl(var(--editor-line-number-active))];
+  }
+
+  /* Prism.js syntax highlighting */
+  .token.keyword {
+    color: hsl(var(--syntax-keyword));
+  }
+  
+  .token.string {
+    color: hsl(var(--syntax-string));
+  }
+  
+  .token.comment {
+    color: hsl(var(--syntax-comment));
+  }
+  
+  .token.function {
+    color: hsl(var(--syntax-function));
+  }
+  
+  .token.number {
+    color: hsl(var(--syntax-number));
+  }
+
+  .token.operator {
+    color: hsl(var(--foreground));
+  }
+
+  /* Selection styles */
+  ::selection {
+    background: hsl(var(--editor-selection));
+  }
+
+  /* Scrollbar styles */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground));
+  }
+}
