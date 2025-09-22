@@ -111,6 +111,7 @@ export default function CreatePaste() {
                   value={content}
                   onChange={setContent}
                   language={language}
+                  className="h-[500px]" 
                 />
               </CardContent>
             </Card>

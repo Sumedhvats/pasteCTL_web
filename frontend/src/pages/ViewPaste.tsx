@@ -169,6 +169,7 @@ export default function ViewPaste() {
                   onChange={() => {}} // Read-only
                   language={paste.language}
                   readOnly
+                  className="h-[500px]" 
                 />
               </CardContent>
             </Card>
