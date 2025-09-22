@@ -21,7 +21,6 @@ func main() {
 	handler := http.NewHandler(pasteService)
 	log.Println("Server starting on :8080...")
 	r := gin.Default()
-	// Configure CORS
     	config := cors.DefaultConfig()
     	config.AllowOrigins = []string{"http://localhost:8080", "https://yourfrontend.com"} 
     	config.AllowMethods = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"}
