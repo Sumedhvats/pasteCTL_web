@@ -6,13 +6,14 @@ import (
 )
 
 type Paste struct {
-	ID        string
-	Content   string
-	Language  string
-	CreatedAt time.Time
-	ExpireAt  *time.Time
-	Views     int
+    ID        string     `json:"id"`
+    Content   string     `json:"content"`
+    Language  string     `json:"language"`
+    CreatedAt time.Time  `json:"created_at"`
+    ExpireAt  *time.Time `json:"expire_at,omitempty"`
+    Views     int        `json:"views"`
 }
+
 type Repository interface {
 	CreatePaste(p *Paste) error
 	UpdatePaste(p *Paste) error
@@ -27,7 +28,7 @@ func NewRepo() Repository {
 	return &repo{}
 }
 func (r *repo) CreatePaste(p *Paste) error {
-	_, err := DB.Exec(context.Background(), "INSERT INTO pastes(id,content,language,expire_at) VALUES($1,$2,$3,$4)", p.ID, p.Content, p.Language, *p.ExpireAt)
+	_, err := DB.Exec(context.Background(), "INSERT INTO pastes(id,content,language,expire_at) VALUES($1,$2,$3,$4)", p.ID, p.Content, p.Language, p.ExpireAt)
 	return err
 }
 
