@@ -1,6 +1,7 @@
 package http
 
 import (
+	"errors"
 	"log"
 	"net/http"
 	"time"
@@ -18,52 +19,81 @@ func NewHandler(svc pasteService.PasteService) *Handler {
 		Service: svc,
 	}
 }
+
 func (h *Handler) CreatePasteHandler(c *gin.Context) {
 	type CreatePasteRequest struct {
 		Content  string `json:"content" binding:"required"`
 		Language string `json:"language" binding:"required"`
-		Expire   string `json:"expire"`
+		Expire   string `json:"expire"` // "1h", "24h", "7d", "never"
 	}
+
 	var req CreatePasteRequest
-	if err := c.Bind(&req); err != nil {
+	if err := c.BindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body or missing fields"})
 		return
 	}
-	expireMinutes := 0
-	if req.Expire != "never" && req.Expire != "" {
-		duration, err := time.ParseDuration(req.Expire)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid expire format"})
-			return
-		}
-		expireMinutes = int(duration.Minutes())
-	}
-	p, err := h.Service.CreatePaste(req.Content, req.Language, expireMinutes)
+expireMinutes := 0
+if req.Expire != "" && req.Expire != "never" {
+    duration, err := parseExpiry(req.Expire) // time.Duration
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid expire format"})
+        return
+    }
+    expireMinutes = int(duration.Minutes())
+}
+
+p, err := h.Service.CreatePaste(req.Content, req.Language, expireMinutes)
 	if err != nil {
-		log.Printf("Failed  to create paste: %v", err)
+		log.Printf("Failed to create paste: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create paste"})
 		return
 	}
+
 	c.JSON(http.StatusOK, p)
 }
 
-func (h *Handler) UpdatePasteHandler(c *gin.Context) {
-	type UpdatePasteRequest struct {
-		Content  string `json:"content"`
-		ID       string `json:"id" binding:"required"`
-		Language string `json:"language" `
+// parseExpiry converts "1h", "24h", "7d" into time.Duration
+func parseExpiry(expire string) (time.Duration, error) {
+	switch expire {
+	case "1h":
+		return time.Hour, nil
+	case "24h":
+		return 24 * time.Hour, nil
+	case "7d":
+		return 7 * 24 * time.Hour, nil
+	default:
+		return 0, errors.New("invalid expiry")
 	}
-	var req UpdatePasteRequest
-	if err := c.Bind(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid or incomplete request"})
-	}
-	p, err := h.Service.UpdatePaste(req.ID, req.Content, req.Language)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update paste"})
-		return
-	}
-	c.JSON(http.StatusOK, p)
 }
+
+
+func (h *Handler) UpdatePasteHandler(c *gin.Context) {
+    id := c.Param("id")
+    if id == "" {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Paste ID is required"})
+        return
+    }
+
+    type UpdatePasteRequest struct {
+        Content  string `json:"content" binding:"required"`
+        Language string `json:"language"`
+    }
+
+    var req UpdatePasteRequest
+    if err := c.BindJSON(&req); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid or incomplete request"})
+        return
+    }
+
+    p, err := h.Service.UpdatePaste(id, req.Content, req.Language)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update paste"})
+        return
+    }
+
+    c.JSON(http.StatusOK, p)
+}
+
 
 func (h *Handler) UpdateViewsHandler(c *gin.Context) {
 	id := c.Param("id")

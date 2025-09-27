@@ -60,21 +60,32 @@ func (s *pasteService)CreatePaste(content string, lang string, expireMinutes int
 	return nil, errors.New("failed to generate a unique ID after 5 attempts")
 }
 
-func (s *pasteService)UpdatePaste(id string,content string, lang string)(*db.Paste,error){
-if content == "" ||  lang== "" {
-		return nil, errors.New("content and language required")
-	}
-	paste:=&db.Paste{
-		ID:id,
-		Content: content,
-		Language: lang,
-	}
-	err:=s.repo.UpdatePaste(paste)
-	if err!=nil {
-		return nil,err
-	}
-	return paste,nil
+
+func (s *pasteService) UpdatePaste(id string, content string, lang string) (*db.Paste, error) {
+    if content == "" {
+        return nil, errors.New("content is required")
+    }
+
+    paste := &db.Paste{
+        ID:      id,
+        Content: content,
+    }
+
+    if lang != "" {
+        paste.Language = lang
+    } else {
+        paste.Language = "text" // default language
+    }
+
+    err := s.repo.UpdatePaste(paste)
+    if err != nil {
+        log.Printf("Failed to update paste ID=%s: %v", id, err)
+        return nil, err
+    }
+
+    return paste, nil
 }
+
 func (s *pasteService)UpdateViews(id string,count int)(*db.Paste,error){
 	paste:=&db.Paste{
 		ID: id,
