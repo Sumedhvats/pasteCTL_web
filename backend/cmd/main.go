@@ -22,7 +22,7 @@ func main() {
 	log.Println("Server starting on :8080...")
 	r := gin.Default()
     	config := cors.DefaultConfig()
-    	config.AllowOrigins = []string{"http://localhost:8080", "https://yourfrontend.com"} 
+    	config.AllowOrigins = []string{"http://localhost:8080", "http://172.25.82.205:8080"} 
     	config.AllowMethods = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"}
     	config.AllowHeaders = []string{"Origin", "Content-Type", "Authorization", "Accept", "User-Agent", "Cache-Control", "Pragma"}
     	config.ExposeHeaders = []string{"Content-Length"}
@@ -37,6 +37,5 @@ func main() {
 	r.PUT("/api/pastes/:id/view", handler.UpdateViewsHandler)
 	if err := r.Run(":8081"); err != nil {
         log.Fatalf("Server failed to start: %v", err)
-    }
-	
+    }	
 }
