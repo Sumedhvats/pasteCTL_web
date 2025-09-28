@@ -17,6 +17,10 @@ type PasteService interface {
 	DeleteExpiredPastes()error
 
 }
+var (
+    ErrPasteNotFound = errors.New("paste not found")
+    ErrPasteExpired  = errors.New("paste has expired")
+)
 type pasteService struct{
 	repo db.Repository
 }
@@ -96,18 +100,21 @@ func (s *pasteService)UpdateViews(id string,count int)(*db.Paste,error){
 	}
 	return paste,nil
 }
-func(s *pasteService) GetPaste(id string)(*db.Paste,error){
-paste, err := s.repo.GetPaste(id)
-	if err != nil {
-		return nil, err
-	}
 
-	if paste.ExpireAt != nil && time.Now().After(*paste.ExpireAt) {
-		return nil, errors.New("paste has expired")
-	}
-
-	return paste, nil
+func(s *pasteService) GetPaste(id string) (*db.Paste, error) {
+    paste, err := s.repo.GetPaste(id)
+    if err != nil {
+        return nil, err // real DB error
+    }
+    if paste == nil {
+        return nil, ErrPasteNotFound
+    }
+    if paste.ExpireAt != nil && time.Now().After(*paste.ExpireAt) {
+        return nil, ErrPasteExpired
+    }
+    return paste, nil
 }
+
 func (s *pasteService)GetContent(id string)(string,error){
 	paste, err := s.repo.GetPaste(id)
 	if err != nil {

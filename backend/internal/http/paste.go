@@ -9,7 +9,10 @@ import (
 	pasteService "github.com/Sumedhvats/pasteCTL/internal/paste"
 	"github.com/gin-gonic/gin"
 )
-
+var (
+    ErrPasteNotFound = errors.New("paste not found")
+    ErrPasteExpired  = errors.New("paste has expired")
+)
 type Handler struct {
 	Service pasteService.PasteService
 }
@@ -108,20 +111,31 @@ func (h *Handler) UpdateViewsHandler(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, p)
 }
-func (h *Handler) GetPasteHandler(c *gin.Context) {
-	id := c.Param("id")
-	if id == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Paste ID is required"})
-		return
-	}
 
-	p, err := h.Service.GetPaste(id)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update views"})
-		return
-	}
-	c.JSON(http.StatusOK, p)
+func (h *Handler) GetPasteHandler(c *gin.Context) {
+    id := c.Param("id")
+    if id == "" {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Paste ID is required"})
+        return
+    }
+
+    p, err := h.Service.GetPaste(id)
+    if err != nil {
+        switch err {
+        case ErrPasteNotFound:
+            c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+        case ErrPasteExpired:
+            c.JSON(http.StatusGone, gin.H{"error": err.Error()})
+        default:
+            log.Printf("Internal error fetching paste: %v", err)
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+        }
+        return
+    }
+
+    c.JSON(http.StatusOK, p)
 }
+
 func (h *Handler) GetContentHandler(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {

@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"os"
 	"time"
 
 	Scheduledjob "github.com/Sumedhvats/pasteCTL/cmd/scheduledJob"
@@ -11,6 +13,7 @@ import (
 	"github.com/Sumedhvats/pasteCTL/internal/ws"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
 func main() {
@@ -22,8 +25,13 @@ func main() {
 	handler := http.NewHandler(pasteService)
 	log.Println("Server starting on :8080...")
 	r := gin.Default()
+	err:=godotenv.Load()
+	if err!=nil {
+		fmt.Print("cannot load env")
+	}
+	frontend_url:=os.Getenv("FRONTEND_URL")
 	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"http://localhost:8080", "http://localhost:3000"}
+	config.AllowOrigins = []string{"http://localhost:3000", frontend_url}
 	config.AllowMethods = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"}
 	config.AllowHeaders = []string{"Origin", "Content-Type", "Authorization", "Accept", "User-Agent", "Cache-Control", "Pragma"}
 	config.ExposeHeaders = []string{"Content-Length"}
@@ -37,7 +45,7 @@ func main() {
 	r.PUT("/api/pastes/:id", handler.UpdatePasteHandler)
 	r.PUT("/api/pastes/:id/view", handler.UpdateViewsHandler)
 	r.GET("/api/ws/:id", ws.PasteHandler)
-	if err := r.Run(":8081"); err != nil {
+	if err := r.Run(":8080"); err != nil {
 		log.Fatalf("Server failed to start: %v", err)
 	}
 }

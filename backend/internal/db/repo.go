@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"time"
 )
 
@@ -42,16 +43,20 @@ func (r *repo) UpdateViews(p *Paste, count int) error {
 	return err
 }
 
-func (r *repo) GetPaste(ID string) (*Paste, error) {
 
-	row := DB.QueryRow(context.Background(), "SELECT id, content, language, created_at, expire_at, views FROM pastes WHERE id=$1", ID)
-	pp := &Paste{}
-	err := row.Scan(&pp.ID, &pp.Content, &pp.Language, &pp.CreatedAt, &pp.ExpireAt, &pp.Views)
-	if err != nil {
-		return nil, err
-	}
-	return pp, nil
+func (r *repo) GetPaste(ID string) (*Paste, error) {
+    row := DB.QueryRow(context.Background(), "SELECT id, content, language, created_at, expire_at, views FROM pastes WHERE id=$1", ID)
+    pp := &Paste{}
+    err := row.Scan(&pp.ID, &pp.Content, &pp.Language, &pp.CreatedAt, &pp.ExpireAt, &pp.Views)
+    if err != nil {
+        if err == sql.ErrNoRows {
+            return nil, nil 
+        }
+        return nil, err
+    }
+    return pp, nil
 }
+
 
 func (r *repo) DeleteExpired() error {
 	_, err := DB.Exec(context.Background(), "DELETE FROM pastes WHERE expire_at IS NOT NULL AND expire_at < NOW()")
