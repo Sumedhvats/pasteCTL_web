@@ -129,8 +129,8 @@ export function CodeEditor({
             lineHeight: 24,
             renderLineHighlight: 'line',
             cursorBlinking: 'smooth',
-//@ts-ignore
-            cursorSmoothCaretAnimation: true,
+
+            cursorSmoothCaretAnimation: "on",
             smoothScrolling: true,
             padding: { top: 15, bottom: 15 },
             bracketPairColorization: { enabled: true },
