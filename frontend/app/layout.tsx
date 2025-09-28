@@ -10,9 +10,17 @@ const jetbrainsMono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mon
 export const metadata: Metadata = {
   title: 'pasteCTL - Share Code Instantly',
   description: 'Share code snippets with syntax highlighting and real-time editing',
-};
-
-export default function RootLayout({
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' }, // SVG first for modern browsers
+      { url: '/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+    ],
+    apple: '/apple-touch-icon.png',
+    shortcut: '/favicon.ico',
+  },
+  manifest: '/site.webmanifest',
+};export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
