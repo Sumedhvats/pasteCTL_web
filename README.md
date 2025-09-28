@@ -1,88 +1,306 @@
 # pasteCTL
 
-pasteCTL is a modern, full-stack pastebin service for storing, sharing, and managing code snippets and text. It's built as a monorepo with a robust Go backend, a sleek Next.js frontend, and a command-line interface (CLI).
+A modern, full-stack pastebin service for storing, sharing, and managing code snippets with real-time collaboration capabilities.
 
-## ✨ Features
+[![Go Report Card](https://goreportcard.com/badge/github.com/Sumedhvats/pasteCTL)](https://goreportcard.com/report/github.com/Sumedhvats/pasteCTL)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Go Reference](https://pkg.go.dev/badge/github.com/Sumedhvats/pasteCTL.svg)](https://pkg.go.dev/github.com/Sumedhvats/pasteCTL)
+[![Release](https://img.shields.io/github/v/release/Sumedhvats/pasteCTL)](https://github.com/Sumedhvats/pasteCTL/releases)
 
--   **Go Backend:** A RESTful API built with Go and Gin, backed by a PostgreSQL database.
--   **Web-based Interface:** A responsive frontend with syntax highlighting and live editing.
--   **Command-Line Interface:** Create, fetch, and update pastes directly from your terminal.
--   **Real-time Collaboration:** Edit pastes in real-time with multiple users using WebSockets.
--   **Paste Management:** Support for paste creation, updates, deletion, and configurable expiry.
+## Overview
 
-## 🚀 Getting Started
+pasteCTL is a comprehensive code sharing platform designed for developers who need to share, collaborate on, and manage code snippets efficiently. Built as a monorepo architecture, it provides a robust Go backend, modern Next.js frontend, and powerful command-line interface for seamless integration into development workflows.
+
+## Architecture
+
+The platform consists of two main components:
+
+- **Backend API**: RESTful API server built with Go and Gin framework
+- **Web Frontend**: Responsive React application with Next.js and TypeScript
+
+## Features
+
+### Core Functionality
+- **Paste Management**: Create, read, update, and delete code snippets
+- **Syntax Highlighting**: Support for 20+ programming languages
+- **Configurable Expiration**: Set custom expiry times (minutes to never)
+- **Raw Content API**: Direct access to paste content for automation
+
+### Real-time Collaboration
+- **WebSocket Integration**: Real-time collaborative editing
+- **Multi-user Support**: Multiple users can edit simultaneously
+- **Live Updates**: See changes as they happen
+
+### Developer Experience
+- **Command-line Interface**: Available as a separate project at [pasteCTL CLI](https://github.com/Sumedhvats/pasteCTL_cli)
+- **API Integration**: RESTful API for programmatic access
+- **File Upload Support**: Direct file sharing capabilities
+
+### Web Interface
+- **Modern UI**: Clean, responsive design with dark mode support
+- **Code Editor**: Full-featured editor with syntax highlighting
+- **Mobile Optimized**: Works seamlessly across all devices
+
+## Installation
 
 ### Prerequisites
-
--   **Go** (version 1.18+)
--   **Node.js** (version 18+)
--   **PostgreSQL**
+- Go 1.21 or higher
+- Node.js 18 or higher  
+- PostgreSQL 12 or higher
 
 ### Backend Setup
 
-1.  **Clone the repository:**
-    ```bash
-    git clone [https://github.com/Sumedhvats/pasteCTL.git](https://github.com/Sumedhvats/pasteCTL.git)
-    cd pasteCTL/backend
-    ```
+```bash
+# Clone repository
+git clone https://github.com/Sumedhvats/pasteCTL.git
+cd pasteCTL/backend
 
-2.  **Create a `.env` file** with your database connection string:
-    ```ini
-    DB_URL="postgres://user:password@localhost:5432/pastectl?sslmode=disable"
-    ```
+# Configure environment
+cp .env.example .env
+# Edit .env with your database credentials
 
-3.  **Run the server:**
-    ```bash
-    go run ./cmd/main.go
-    ```
-    The backend will run on `http://localhost:8080`.
+# Install dependencies and run
+go mod download
+go run ./cmd/main.go
+```
 
 ### Frontend Setup
 
-1.  **Navigate to the frontend directory:**
-    ```bash
-    cd ../frontend
-    ```
+```bash
+cd ../frontend
 
-2.  **Install dependencies:**
-    ```bash
-    npm install
-    ```
+# Install dependencies
+npm install
 
-3.  **Start the development server:**
-    ```bash
-    npm run dev
-    ```
-    The frontend will be available at `http://localhost:3000`.
+# Configure environment
+cp .env.local.example .env.local
+# Edit .env.local with your API endpoint
 
-### CLI Setup
+# Start development server
+npm run dev
+```
 
-1.  **Navigate to the CLI directory:**
-    ```bash
-    cd ../cli
-    ```
+### Command-Line Interface
 
-2.  **Run the CLI tool** with commands like:
-    ```bash
-    go run . upload your_file.go
-    ```
+For terminal-based workflows, install our dedicated CLI tool:
 
-## 🧪 API Endpoints
+**[pasteCTL CLI](https://github.com/Sumedhvats/pasteCTL_cli)** - Full-featured command-line interface
+
+```bash
+# Install CLI
+go install github.com/Sumedhvats/pastectl@latest
+
+# Configure and use
+pastectl config set frontend_url http://localhost:3000
+pastectl create --file main.go
+```
+
+## Usage
+
+### Web Interface
+
+Navigate to `http://localhost:3000` to access the web interface where you can:
+- Create new pastes with syntax highlighting
+- Set expiration times and language types
+- Share pastes via URL
+- Edit pastes in real-time with collaborators
+
+### Command Line Interface
+
+For comprehensive terminal-based workflows, see our dedicated CLI project:
+
+**[pasteCTL CLI Repository →](https://github.com/Sumedhvats/pasteCTL_cli)**
+
+The CLI provides full paste management capabilities including:
+- Create pastes from files or editor
+- Retrieve and update existing pastes  
+- Automatic language detection
+- Configurable expiration settings
+
+### API Integration
+
+#### Create Paste
+```bash
+curl -X POST http://localhost:8080/api/pastes \
+  -H "Content-Type: application/json" \
+  -d '{
+    "content": "package main\n\nfunc main() {\n    println(\"Hello, World!\")\n}",
+    "language": "go",
+    "expire": "24h"
+  }'
+```
+
+#### Retrieve Paste
+```bash
+curl http://localhost:8080/api/pastes/abc123def
+```
+
+## API Reference
 
 | Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| **`POST`** | `/api/pastes` | Creates a new paste. |
-| **`GET`** | `/api/pastes/:id` | Retrieves a paste. |
-| **`GET`** | `/api/pastes/:id/raw` | Retrieves content as plain text. |
-| **`PUT`** | `/api/pastes/:id` | Updates an existing paste. |
-| **`DELETE`** | `/api/pastes/:id` | Deletes a paste. |
-| **`PATCH`** | `/api/pastes/:id/views` | Increments the view counter. |
-| **`GET`** | `/ws/pastes/:id` | WebSocket endpoint for real-time editing. |
+|--------|----------|-------------|
+| `POST` | `/api/pastes` | Create a new paste |
+| `GET` | `/api/pastes/:id` | Retrieve paste with metadata |
+| `GET` | `/api/pastes/:id/raw` | Get raw paste content |
+| `PUT` | `/api/pastes/:id` | Update existing paste |
+| `DELETE` | `/api/pastes/:id` | Delete paste |
+| `PATCH` | `/api/pastes/:id/views` | Increment view counter |
+| `GET` | `/ws/pastes/:id` | WebSocket for real-time editing |
 
-## 🤝 Contributing
+### Request/Response Examples
 
-Feel free to submit issues or pull requests to improve the project.
+#### Create Paste Request
+```json
+{
+  "content": "console.log('Hello, World!');",
+  "language": "javascript",
+  "expire": "1h"
+}
+```
 
-## 📄 License
+#### Paste Response
+```json
+{
+  "id": "abc123def",
+  "content": "console.log('Hello, World!');",
+  "language": "javascript",
+  "created_at": "2025-01-15T10:30:00Z",
+  "expire_at": "2025-01-15T11:30:00Z",
+  "views": 0
+}
+```
 
-This project is licensed under the MIT License.
+## Supported Languages
+
+The platform supports syntax highlighting for:
+
+| Language | Extensions | Identifier |
+|----------|------------|------------|
+| Go | `.go` | `go` |
+| Python | `.py` | `python` |
+| JavaScript | `.js` | `javascript` |
+| TypeScript | `.ts` | `typescript` |
+| Java | `.java` | `java` |
+| C++ | `.cpp`, `.cc` | `cpp` |
+| C | `.c` | `c` |
+| Rust | `.rs` | `rust` |
+| PHP | `.php` | `php` |
+| Ruby | `.rb` | `ruby` |
+| Shell | `.sh` | `bash` |
+| SQL | `.sql` | `sql` |
+| JSON | `.json` | `json` |
+| YAML | `.yml`, `.yaml` | `yaml` |
+| Markdown | `.md` | `markdown` |
+| HTML | `.html` | `html` |
+| CSS | `.css` | `css` |
+| XML | `.xml` | `xml` |
+
+## Configuration
+
+### Environment Variables
+
+#### Backend
+```env
+DB_URL=postgres://user:password@localhost:5432/pastectl?sslmode=disable
+PORT=8080
+CORS_ORIGINS=http://localhost:3000
+```
+
+#### Frontend
+```env
+NEXT_PUBLIC_BACKEND_URL=http://localhost:8080
+NEXT_PUBLIC_WS_URL=ws://localhost:8080
+```
+
+## Development
+
+### Project Structure
+
+```
+pasteCTL/
+├── backend/           # Go API server
+│   ├── cmd/          # Application entrypoints
+│   ├── internal/     # Internal packages
+│   └── pkg/          # Public packages
+└── frontend/         # Next.js web application
+    ├── app/          # App router pages
+    ├── components/   # React components
+    └── lib/          # Utility functions
+```
+
+### Running Tests
+
+```bash
+# Backend tests
+cd backend && go test ./...
+
+# Frontend tests  
+cd frontend && npm test
+```
+
+### Database Migration
+
+```bash
+cd backend
+go run ./cmd/migrate.go
+```
+
+## Deployment
+
+### Backend
+```bash
+cd backend
+go build -o pastectl-server ./cmd/main.go
+./pastectl-server
+```
+
+### Frontend
+```bash
+cd frontend
+npm run build
+npm start
+```
+
+## Contributing
+
+We welcome contributions to pasteCTL! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
+### Development Setup
+
+1. Fork the repository
+2. Clone your fork: `git clone https://github.com/yourusername/pasteCTL.git`
+3. Create a feature branch: `git checkout -b feature/amazing-feature`
+4. Make your changes
+5. Commit your changes: `git commit -m 'Add amazing feature'`
+6. Push to your branch: `git push origin feature/amazing-feature`
+7. Open a Pull Request
+
+### Code Style
+
+- **Go**: Follow standard Go formatting (`gofmt`, `golint`)
+- **JavaScript/TypeScript**: Use Prettier and ESLint configurations
+- **Commit Messages**: Follow [Conventional Commits](https://conventionalcommits.org/)
+
+## Security
+
+For security vulnerabilities, please email security@pastectl.com instead of using the issue tracker.
+
+See our [Security Policy](SECURITY.md) for more details.
+
+## Related Projects
+
+- **[pasteCTL CLI](https://github.com/Sumedhvats/pasteCTL_cli)** - Command-line interface for terminal workflows
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Support
+
+- **Issues**: [GitHub Issues](https://github.com/Sumedhvats/pasteCTL/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Sumedhvats/pasteCTL/discussions)
+- **CLI Tool**: [pasteCTL CLI Repository](https://github.com/Sumedhvats/pasteCTL_cli)
+
+---
+
+Made with ❤️ for the developer community..
