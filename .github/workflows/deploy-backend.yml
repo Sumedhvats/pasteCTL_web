@@ -1,27 +1,42 @@
 name: Deploy Backend
-
 on:
   push:
     branches: [ main ]
     paths:
       - 'backend/**'
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Deploy to EC2
-        uses: appleboy/ssh-action@v1.0.0
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.1' 
+      - name: Run tests
+        run: go test -v ./...
+        working-directory: ./backend
+      - name: Build the Go application
+        run: |
+          cd backend
+          go build -o server ./cmd/main.go
+      
+      - name: Deploy binary to EC2 with SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "backend/server" 
+          target: "~/pasteCTL/backend/"
+
+      - name: SSH and Restart Service
+        uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd ~/pasteCTL
-            git pull origin main
-            cd backend
-            go build -o server .
             sudo systemctl restart paste-backend

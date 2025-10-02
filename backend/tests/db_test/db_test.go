@@ -26,7 +26,7 @@ func setupTestDB(t *testing.T) {
 	pgContainer, err := postgres.Run(
 		ctx,
 		"postgres", 
-		postgres.WithInitScripts(filepath.Join("testDATA_DB", "testdata.sql")),
+		postgres.WithInitScripts(filepath.Join("..","testDATA_DB", "testdata.sql")),
 		postgres.WithDatabase(dbName),
 		postgres.WithUsername(dbUser),
 		postgres.WithPassword(dbPassword),
