@@ -7,6 +7,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: EC2-AWS
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
