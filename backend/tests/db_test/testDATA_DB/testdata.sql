@@ -1,0 +1,9 @@
+		CREATE TABLE IF NOT EXISTS pastes(
+			id TEXT PRIMARY KEY,
+			content TEXT NOT NULL,
+			language TEXT NOT NULL,
+			created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+			expire_at TIMESTAMPTZ,
+			views INT NOT NULL DEFAULT 0
+		);
+	

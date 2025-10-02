@@ -12,28 +12,28 @@ import (
 var DB *pgxpool.Pool
 
 func Init() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal(err)
-	}
+	godotenv.Load()
 
 	connStr := os.Getenv("DATABASE_URL")
+	if connStr == "" {
+		log.Fatal("DATABASE_URL environment variable is not set")
+	}
+
 	pool, err := pgxpool.New(context.Background(), connStr)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Unable to create connection pool: %v\n", err)
 	}
 
 	if err := pool.Ping(context.Background()); err != nil {
-		log.Fatal(err)
+		log.Fatalf("Unable to ping database: %v\n", err)
 	}
 
 	DB = pool
-
-
-
 	log.Println("Database initialized")
 }
 
 func Close() {
-	DB.Close()
+	if DB != nil {
+		DB.Close()
+	}
 }
