@@ -73,7 +73,6 @@ func setupRouter(handler *httpHandler.Handler) *gin.Engine {
 	r.GET("/pastes/:id/content", handler.GetContentHandler)
 	return r
 }
-
 func TestCreatePasteHandler(t *testing.T) {
 	t.Run("successfull creation with 1h expiry", func(t *testing.T) {
 		mockService := new(MockPasteService)
