@@ -22,7 +22,6 @@ func setupTestDB(t *testing.T) {
 	dbUser := "sumedh"
 	dbPassword := "q23rgv"
 	ctx := context.Background()
-
 	pgContainer, err := postgres.Run(
 		ctx,
 		"postgres", 
