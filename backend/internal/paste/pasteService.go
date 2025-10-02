@@ -7,6 +7,7 @@ import (
 
 	"github.com/Sumedhvats/pasteCTL/internal/db"
 	"github.com/Sumedhvats/pasteCTL/pkg"
+	"github.com/jackc/pgx/v5"
 )
 type PasteService interface {
 	CreatePaste(content string, lang string, expireMinutes int) (*db.Paste, error)
@@ -36,7 +37,7 @@ func (s *pasteService)CreatePaste(content string, lang string, expireMinutes int
 	}
 
 	var expireTime *time.Time
-	if expireMinutes > 0 {
+	if expireMinutes != 0 {
 		t := time.Now().Add(time.Duration(expireMinutes) * time.Minute)
 		expireTime = &t
 	}
@@ -104,8 +105,11 @@ func (s *pasteService)UpdateViews(id string,count int)(*db.Paste,error){
 func(s *pasteService) GetPaste(id string) (*db.Paste, error) {
     paste, err := s.repo.GetPaste(id)
     if err != nil {
-        return nil, err // real DB error
-    }
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrPasteNotFound
+		}
+		return nil, err // It's some other real DB error
+	}
     if paste == nil {
         return nil, ErrPasteNotFound
     }
