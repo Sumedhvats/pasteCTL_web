@@ -41,4 +41,4 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            sudo systemctl restart paste-backend
+            sudo systemctl restart  pasteCTL-backend
