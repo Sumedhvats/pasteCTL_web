@@ -74,7 +74,7 @@ export function Header() {
           <Button
             variant="ghost"
             className="text-slate-300 hover:text-white hover:bg-slate-800"
-            onClick={() => window.open('https://github.com/Sumedhvats/pasteCTL_cli', '_blank')}
+            onClick={() => window.open('https://github.com/Sumedhvats/pasteCTL', '_blank')}
           >
             <Terminal className="w-4 h-4 mr-2" />
             pasteCTL CLI
@@ -83,7 +83,7 @@ export function Header() {
           <Button
             variant="ghost"
             className="text-slate-300 hover:text-white hover:bg-slate-800"
-            onClick={() => window.open('https://github.com/Sumedhvats/pasteCTL', '_blank')}
+            onClick={() => window.open('https://github.com/Sumedhvats/pasteCTL_web', '_blank')}
           >
             <Github className="w-4 h-4 mr-2" />
             GitHub

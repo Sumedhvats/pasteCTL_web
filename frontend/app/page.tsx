@@ -132,7 +132,7 @@ export default function CreatePaste() {
           <div className="flex justify-between items-start mb-4">
             <div className="flex items-center gap-2">
               <Terminal className="w-6 h-6 text-emerald-400" />
-              <h3 className="text-xl font-bold text-white">Try PasteCTL CLI</h3>
+              <h3 className="text-xl font-bold text-white">Try pasteCTL CLI</h3>
             </div>
             <button
               onClick={() => setShowCliPopup(false)}
@@ -147,12 +147,12 @@ export default function CreatePaste() {
           </p>
           
           <div className="bg-slate-900 rounded-lg p-3 mb-4 border border-slate-600">
-            <code className="text-emerald-400 text-sm">pastectl create -f ./main.go</code>
+            <code className="text-emerald-400 text-sm">pasteCTL create -f ./main.go</code>
           </div>
           
           <div className="flex gap-3">
             <Button
-              onClick={() => window.open('https://github.com/Sumedhvats/pasteCTL_cli', '_blank')}
+              onClick={() => window.open('https://github.com/Sumedhvats/pasteCTL', '_blank')}
               className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white"
             >
               <Download className="w-4 h-4 mr-2" />
@@ -268,7 +268,7 @@ export default function CreatePaste() {
                   <li>• Choose the right language for syntax highlighting.</li>
                   <li>• Use expiry dates for sensitive content.</li>
                   <li>• You can use Ctrl+Enter to create paste.</li>
-                  <li>• Try our <a href="https://github.com/Sumedhvats/pasteCTL_cli" target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:underline">CLI tool</a> for terminal usage.</li>
+                  <li>• Try our <a href="https://github.com/Sumedhvats/pasteCTL" target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:underline">CLI tool</a> for terminal usage.</li>
                 </ul>
               </CardContent>
             </Card>

@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Sumedhvats/pasteCTL/internal/db"
-	pasteService "github.com/Sumedhvats/pasteCTL/internal/paste"
+	"github.com/Sumedhvats/pasteCTL_web/internal/db"
+	pasteService "github.com/Sumedhvats/pasteCTL_web/internal/paste"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"

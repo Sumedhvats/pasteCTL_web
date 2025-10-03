@@ -5,8 +5,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/Sumedhvats/pasteCTL/internal/db"
-	"github.com/Sumedhvats/pasteCTL/pkg"
+	"github.com/Sumedhvats/pasteCTL_web/internal/db"
+	"github.com/Sumedhvats/pasteCTL_web/pkg"
 	"github.com/jackc/pgx/v5"
 )
 type PasteService interface {
@@ -16,7 +16,6 @@ type PasteService interface {
 	UpdatePaste(id string,content string, lang string)(*db.Paste,error)
 	UpdateViews(id string,count int)(*db.Paste,error)
 	DeleteExpiredPastes()error
-
 }
 var (
     ErrPasteNotFound = errors.New("paste not found")
@@ -25,7 +24,6 @@ var (
 type pasteService struct{
 	repo db.Repository
 }
-
 func NewPasteService(r db.Repository)PasteService{
 	return &pasteService{
 		repo:r,

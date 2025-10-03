@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Sumedhvats/pasteCTL/internal/db"
-	httpHandler "github.com/Sumedhvats/pasteCTL/internal/http"
+	"github.com/Sumedhvats/pasteCTL_web/internal/db"
+	httpHandler "github.com/Sumedhvats/pasteCTL_web/internal/http"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -78,7 +78,6 @@ func TestCreatePasteHandler(t *testing.T) {
 		mockService := new(MockPasteService)
 		handler := httpHandler.NewHandler(mockService)
 		router := setupRouter(handler)
-
 		expireAt := time.Now().Add(1 * time.Hour)
 		expectedPaste := &db.Paste{
 			ID:       "abc123",

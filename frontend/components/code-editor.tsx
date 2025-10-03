@@ -28,7 +28,7 @@ export function CodeEditor({
     setIsEditorReady(true);
 
     // Configure Monaco theme
-    monaco.editor.defineTheme('pastectlTheme', {
+    monaco.editor.defineTheme('pasteCTLTheme', {
       base: 'vs-dark',
       inherit: true,
       rules: [
@@ -53,7 +53,7 @@ export function CodeEditor({
       }
     });
 
-    monaco.editor.setTheme('pastectlTheme');
+    monaco.editor.setTheme('pasteCTLTheme');
 
     // Add placeholder functionality
     if (!value && placeholder) {
@@ -139,7 +139,7 @@ export function CodeEditor({
               indentation: true,
             },
           }}
-          theme="pastectlTheme"
+          theme="pasteCTLTheme"
         />
       </div>
     </div>

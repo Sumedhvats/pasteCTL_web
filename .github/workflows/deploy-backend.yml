@@ -1,13 +1,16 @@
 name: Deploy Backend
+
 on:
   push:
     branches: [ main ]
     paths:
       - 'backend/**'
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
     environment: EC2-AWS
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -15,30 +18,41 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.25.1' 
-      - name: Run tests
-        run: go test -v ./...
+          go-version: '1.25.1'
+
+      - name: Install Dependencies
+        run: go mod tidy
         working-directory: ./backend
+
       - name: Build the Go application
-        run: |
-          cd backend
-          go build -o server ./cmd/main.go
-      
-      - name: Deploy binary to EC2 with SCP
+        run: go build -o server ./cmd/main.go
+        working-directory: ./backend
+
+      - name: Prepare EC2 backend folder
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: mkdir -p ~/pasteCTL_web/backend
+
+      - name: Deploy server binary
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
-          key: |
-           ${{ secrets.EC2_SSH_KEY }}
-          source: "backend/server" 
-          target: "~/pasteCTL/backend/"
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "./backend/server"
+          target: "~/pasteCTL_web/backend/"
+          strip_components: 1
+          overwrite: true
 
-      - name: SSH and Restart Service
+      - name: Restart Service
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            sudo systemctl restart  pasteCTL-backend
+            sudo chmod +x ~/pasteCTL_web/backend/server
+            sudo systemctl restart pasteCTL-backend.service

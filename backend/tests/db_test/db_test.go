@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Sumedhvats/pasteCTL/internal/db"
+	"github.com/Sumedhvats/pasteCTL_web/internal/db"
 	"github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/testcontainers/testcontainers-go"

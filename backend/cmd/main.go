@@ -5,12 +5,11 @@ import (
 	"log"
 	"os"
 	"time"
-
-	Scheduledjob "github.com/Sumedhvats/pasteCTL/cmd/scheduledJob"
-	"github.com/Sumedhvats/pasteCTL/internal/db"
-	"github.com/Sumedhvats/pasteCTL/internal/http"
-	pasteService "github.com/Sumedhvats/pasteCTL/internal/paste"
-	"github.com/Sumedhvats/pasteCTL/internal/ws"
+	Scheduledjob "github.com/Sumedhvats/pasteCTL_web/cmd/scheduledJob"
+	"github.com/Sumedhvats/pasteCTL_web/internal/db"
+	"github.com/Sumedhvats/pasteCTL_web/internal/http"
+	pasteService "github.com/Sumedhvats/pasteCTL_web/internal/paste"
+	"github.com/Sumedhvats/pasteCTL_web/internal/ws"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -31,7 +30,7 @@ func main() {
 	}
 	frontend_url:=os.Getenv("FRONTEND_URL")
 	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"http://localhost:3000", frontend_url}
+	config.AllowOrigins = []string{"https://www.paste.sumedh.app","https://www.paste.sumedh.app/","https://paste.sumedh.app","https://paste.sumedh.app/","https://localhost:3000", frontend_url}
 	config.AllowMethods = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"}
 	config.AllowHeaders = []string{"Origin", "Content-Type", "Authorization", "Accept", "User-Agent", "Cache-Control", "Pragma"}
 	config.ExposeHeaders = []string{"Content-Length"}

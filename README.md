@@ -1,15 +1,15 @@
-# pastectL
+# pasteCTL_web
 
 A modern, full-stack pastebin service for storing, sharing, and managing code snippets with real-time collaboration capabilities.
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/Sumedhvats/pasteCTL)](https://goreportcard.com/report/github.com/Sumedhvats/pasteCTL)
+[![Go Report Card](https://goreportcard.com/badge/github.com/Sumedhvats/pasteCTL_web)](https://goreportcard.com/report/github.com/Sumedhvats/pasteCTL_web)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Go Reference](https://pkg.go.dev/badge/github.com/Sumedhvats/pasteCTL.svg)](https://pkg.go.dev/github.com/Sumedhvats/pasteCTL)
-[![Release](https://img.shields.io/github/v/release/Sumedhvats/pasteCTL)](https://github.com/Sumedhvats/pasteCTL/releases)
+[![Go Reference](https://pkg.go.dev/badge/github.com/Sumedhvats/pasteCTL_web.svg)](https://pkg.go.dev/github.com/Sumedhvats/pasteCTL_web)
+[![Release](https://img.shields.io/github/v/release/Sumedhvats/pasteCTL_web)](https://github.com/Sumedhvats/pasteCTL_web/releases)
 
 ## Overview
 
-pasteCTL is a comprehensive code sharing platform designed for developers who need to share, collaborate on, and manage code snippets efficiently. Built as a monorepo architecture, it provides a robust Go backend, modern Next.js frontend, and powerful command-line interface for seamless integration into development workflows.
+pasteCTL_web is a comprehensive code sharing platform designed for developers who need to share, collaborate on, and manage code snippets efficiently. Built as a monorepo architecture, it provides a robust Go backend, modern Next.js frontend, and powerful command-line interface for seamless integration into development workflows.
 
 ## Architecture
 
@@ -32,7 +32,7 @@ The platform consists of two main components:
 - **Live Updates**: See changes as they happen
 
 ### Developer Experience
-- **Command-line Interface**: Available as a separate project at [pasteCTL CLI](https://github.com/Sumedhvats/pasteCTL_cli)
+- **Command-line Interface**: Available as a separate project at [pasteCTL_web CLI](https://github.com/Sumedhvats/pasteCTL_web_cli)
 - **API Integration**: RESTful API for programmatic access
 - **File Upload Support**: Direct file sharing capabilities
 
@@ -52,8 +52,8 @@ The platform consists of two main components:
 
 ```bash
 # Clone repository
-git clone https://github.com/Sumedhvats/pasteCTL.git
-cd pasteCTL/backend
+git clone https://github.com/Sumedhvats/pasteCTL_web.git
+cd pasteCTL_web/backend
 
 # Configure environment
 cp .env.example .env
@@ -84,15 +84,15 @@ npm run dev
 
 For terminal-based workflows, install our dedicated CLI tool:
 
-**[pasteCTL CLI](https://github.com/Sumedhvats/pasteCTL_cli)** - Full-featured command-line interface
+**[pasteCTL_web CLI](https://github.com/Sumedhvats/pasteCTL_web_cli)** - Full-featured command-line interface
 
 ```bash
 # Install CLI
-go install github.com/Sumedhvats/pastectl@latest
+go install github.com/Sumedhvats/pasteCTL_web@latest
 
 # Configure and use
-pastectl config set frontend_url http://localhost:3000
-pastectl create --file main.go
+pasteCTL_web config set frontend_url http://localhost:3000
+pasteCTL_web create --file main.go
 ```
 
 ## Usage
@@ -109,7 +109,7 @@ Navigate to `http://localhost:3000` to access the web interface where you can:
 
 For comprehensive terminal-based workflows, see our dedicated CLI project:
 
-**[pasteCTL CLI Repository →](https://github.com/Sumedhvats/pasteCTL_cli)**
+**[pasteCTL_web CLI Repository →](https://github.com/Sumedhvats/pasteCTL_web_cli)**
 
 The CLI provides full paste management capabilities including:
 - Create pastes from files or editor
@@ -201,7 +201,7 @@ The platform supports syntax highlighting for:
 
 #### Backend
 ```env
-DB_URL=postgres://user:password@localhost:5432/pastectl?sslmode=disable
+DB_URL=postgres://user:password@localhost:5432/pasteCTL_web?sslmode=disable
 PORT=8080
 CORS_ORIGINS=http://localhost:3000
 ```
@@ -217,7 +217,7 @@ NEXT_PUBLIC_WS_URL=ws://localhost:8080
 ### Project Structure
 
 ```
-pasteCTL/
+pasteCTL_web/
 ├── backend/           # Go API server
 │   ├── cmd/          # Application entrypoints
 │   ├── internal/     # Internal packages
@@ -250,8 +250,8 @@ go run ./cmd/migrate.go
 ### Backend
 ```bash
 cd backend
-go build -o pastectl-server ./cmd/main.go
-./pastectl-server
+go build -o pasteCTL_web-server ./cmd/main.go
+./pasteCTL_web-server
 ```
 
 ### Frontend
@@ -263,12 +263,12 @@ npm start
 
 ## Contributing
 
-We welcome contributions to pasteCTL! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+We welcome contributions to pasteCTL_web! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
 ### Development Setup
 
 1. Fork the repository
-2. Clone your fork: `git clone https://github.com/yourusername/pasteCTL.git`
+2. Clone your fork: `git clone https://github.com/yourusername/pasteCTL_web.git`
 3. Create a feature branch: `git checkout -b feature/amazing-feature`
 4. Make your changes
 5. Commit your changes: `git commit -m 'Add amazing feature'`
@@ -283,13 +283,13 @@ We welcome contributions to pasteCTL! Please see our [Contributing Guide](CONTRI
 
 ## Security
 
-For security vulnerabilities, please email security@pastectl.com instead of using the issue tracker.
+For security vulnerabilities, please email security@pasteCTL_web.com instead of using the issue tracker.
 
 See our [Security Policy](SECURITY.md) for more details.
 
 ## Related Projects
 
-- **[pasteCTL CLI](https://github.com/Sumedhvats/pasteCTL_cli)** - Command-line interface for terminal workflows
+- **[pasteCTL_web CLI](https://github.com/Sumedhvats/pasteCTL_web_cli)** - Command-line interface for terminal workflows
 
 ## License
 
@@ -297,9 +297,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Support
 
-- **Issues**: [GitHub Issues](https://github.com/Sumedhvats/pasteCTL/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/Sumedhvats/pasteCTL/discussions)
-- **CLI Tool**: [pasteCTL CLI Repository](https://github.com/Sumedhvats/pasteCTL_cli)
+- **Issues**: [GitHub Issues](https://github.com/Sumedhvats/pasteCTL_web/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Sumedhvats/pasteCTL_web/discussions)
+- **CLI Tool**: [pasteCTL_web CLI Repository](https://github.com/Sumedhvats/pasteCTL_web_cli)
 
 ---
 

@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"time"
 )
-
 type Paste struct {
     ID        string     `json:"id"`
     Content   string     `json:"content"`

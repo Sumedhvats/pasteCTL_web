@@ -5,8 +5,7 @@ import (
 	"log"
 	"net/http"
 	"time"
-
-	pasteService "github.com/Sumedhvats/pasteCTL/internal/paste"
+	pasteService "github.com/Sumedhvats/pasteCTL_web/internal/paste"
 	"github.com/gin-gonic/gin"
 )
 var (
@@ -76,7 +75,6 @@ func (h *Handler) UpdatePasteHandler(c *gin.Context) {
         c.JSON(http.StatusBadRequest, gin.H{"error": "Paste ID is required"})
         return
     }
-
     type UpdatePasteRequest struct {
         Content  string `json:"content" binding:"required"`
         Language string `json:"language"`
@@ -96,7 +94,6 @@ func (h *Handler) UpdatePasteHandler(c *gin.Context) {
 
     c.JSON(http.StatusOK, p)
 }
-
 
 func (h *Handler) UpdateViewsHandler(c *gin.Context) {
 	id := c.Param("id")
@@ -135,7 +132,6 @@ func (h *Handler) GetPasteHandler(c *gin.Context) {
 
     c.JSON(http.StatusOK, p)
 }
-
 func (h *Handler) GetContentHandler(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
