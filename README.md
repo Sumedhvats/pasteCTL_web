@@ -1,306 +1,249 @@
-# pasteCTL_web
+# PasteCTL Web
 
-A modern, full-stack pastebin service for storing, sharing, and managing code snippets with real-time collaboration capabilities.
-
-[![Go Report Card](https://goreportcard.com/badge/github.com/Sumedhvats/pasteCTL_web)](https://goreportcard.com/report/github.com/Sumedhvats/pasteCTL_web)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Go Reference](https://pkg.go.dev/badge/github.com/Sumedhvats/pasteCTL_web.svg)](https://pkg.go.dev/github.com/Sumedhvats/pasteCTL_web)
-[![Release](https://img.shields.io/github/v/release/Sumedhvats/pasteCTL_web)](https://github.com/Sumedhvats/pasteCTL_web/releases)
+A modern code snippet sharing platform with syntax highlighting and expirable pastes. Built with Next.js frontend and Go backend.
 
 ## Overview
 
-pasteCTL_web is a comprehensive code sharing platform designed for developers who need to share, collaborate on, and manage code snippets efficiently. Built as a monorepo architecture, it provides a robust Go backend, modern Next.js frontend, and powerful command-line interface for seamless integration into development workflows.
-
-## Architecture
-
-The platform consists of two main components:
-
-- **Backend API**: RESTful API server built with Go and Gin framework
-- **Web Frontend**: Responsive React application with Next.js and TypeScript
+PasteCTL Web is a lightweight pastebin alternative that allows developers to share code snippets quickly and securely. Each paste can be configured with custom expiry times and supports syntax highlighting for multiple programming languages.
 
 ## Features
 
-### Core Functionality
-- **Paste Management**: Create, read, update, and delete code snippets
-- **Syntax Highlighting**: Support for 20+ programming languages
-- **Configurable Expiration**: Set custom expiry times (minutes to never)
-- **Raw Content API**: Direct access to paste content for automation
+- **Syntax Highlighting**: Support for multiple programming languages with automatic syntax detection
+- **Custom Expiry Times**: Set pastes to expire after 1 hour, 24 hours, or custom durations
+- **Live Editing**: Real-time collaborative editing using WebSocket connections
+- **View Tracking**: Monitor paste view counts
+- **Raw Content Access**: Retrieve paste content in raw format via API
+- **CLI Integration**: Access and manage pastes from the command line using [PasteCTL CLI](https://github.com/sumedhvats/pastectl)
+- **Automatic Cleanup**: Scheduled job to delete expired pastes
 
-### Real-time Collaboration
-- **WebSocket Integration**: Real-time collaborative editing
-- **Multi-user Support**: Multiple users can edit simultaneously
-- **Live Updates**: See changes as they happen
+## Architecture
 
-### Developer Experience
-- **Command-line Interface**: Available as a separate project at [pasteCTL_web CLI](https://github.com/Sumedhvats/pasteCTL_web_cli)
-- **API Integration**: RESTful API for programmatic access
-- **File Upload Support**: Direct file sharing capabilities
+### Frontend
+- **Framework**: Next.js with React
+- **Styling**: Tailwind CSS
+- **Deployment**: AWS Amplify
+- **Live URL**: [paste.sumedh.app](https://www.paste.sumedh.app)
 
-### Web Interface
-- **Modern UI**: Clean, responsive design with dark mode support
-- **Code Editor**: Full-featured editor with syntax highlighting
-- **Mobile Optimized**: Works seamlessly across all devices
+### Backend
+- **Language**: Go 1.24.0
+- **Framework**: Gin Web Framework
+- **Database**: PostgreSQL (via pgx driver)
+- **WebSocket**: Gorilla WebSocket for live editing
+- **Deployment**: AWS EC2
+- **Testing**: Testcontainers for integration tests
 
-## Installation
+## Tech Stack
+
+### Backend Dependencies
+- **Gin**: Web framework with CORS support
+- **pgx/v5**: PostgreSQL driver and toolkit
+- **Gorilla WebSocket**: WebSocket implementation
+- **godotenv**: Environment variable management
+- **Testcontainers**: Testing with containerized PostgreSQL
+
+## Getting Started
 
 ### Prerequisites
-- Go 1.21 or higher
-- Node.js 18 or higher  
-- PostgreSQL 12 or higher
+- Go 1.24.0 or higher
+- PostgreSQL database
+- Node.js 18+ (for frontend)
 
 ### Backend Setup
 
+1. Clone the repository:
 ```bash
-# Clone repository
-git clone https://github.com/Sumedhvats/pasteCTL_web.git
-cd pasteCTL_web/backend
-
-# Configure environment
-cp .env.example .env
-# Edit .env with your database credentials
-
-# Install dependencies and run
-go mod download
-go run ./cmd/main.go
+git clone https://github.com/sumedhvats/pastectl_web.git
+cd pastectl_web
 ```
+
+2. Install dependencies:
+```bash
+go mod download
+```
+
+3. Configure environment variables:
+Create a `.env` file in the root directory:
+```env
+DATABASE_URL=postgresql://user:password@localhost:5432/pastes
+FRONTEND_URL=http://localhost:3000
+```
+
+4. Run the server:
+```bash
+go run main.go
+```
+
+The backend server will start on `http://localhost:8080`
 
 ### Frontend Setup
 
+1. Navigate to the frontend directory:
 ```bash
-cd ../frontend
+cd frontend
+```
 
-# Install dependencies
+2. Install dependencies:
+```bash
 npm install
+```
 
-# Configure environment
-cp .env.local.example .env.local
-# Edit .env.local with your API endpoint
-
-# Start development server
+3. Run the development server:
+```bash
 npm run dev
 ```
 
-### Command-Line Interface
+The frontend will be available at `http://localhost:3000`
 
-For terminal-based workflows, install our dedicated CLI tool:
+## API Endpoints
 
-**[pasteCTL_web CLI](https://github.com/Sumedhvats/pasteCTL_web_cli)** - Full-featured command-line interface
+### Paste Operations
+- `POST /api/pastes` - Create a new paste
+- `GET /api/pastes/:id` - Get paste by ID
+- `GET /api/pastes/:id/raw` - Get raw paste content
+- `PUT /api/pastes/:id` - Update existing paste
+- `PUT /api/pastes/:id/view` - Increment view count
 
-```bash
-# Install CLI
-go install github.com/Sumedhvats/pasteCTL_web@latest
+### WebSocket
+- `GET /api/ws/:id` - WebSocket endpoint for live editing
 
-# Configure and use
-pasteCTL_web config set frontend_url http://localhost:3000
-pasteCTL_web create --file main.go
+## Database Schema
+
+The application uses PostgreSQL with the following main table structure:
+
+```sql
+CREATE TABLE pastes (
+    id VARCHAR PRIMARY KEY,
+    content TEXT NOT NULL,
+    language VARCHAR NOT NULL,
+    expire_at TIMESTAMP,
+    views INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT NOW()
+);
 ```
 
-## Usage
+## Testing
 
-### Web Interface
-
-Navigate to `http://localhost:3000` to access the web interface where you can:
-- Create new pastes with syntax highlighting
-- Set expiration times and language types
-- Share pastes via URL
-- Edit pastes in real-time with collaborators
-
-### Command Line Interface
-
-For comprehensive terminal-based workflows, see our dedicated CLI project:
-
-**[pasteCTL_web CLI Repository →](https://github.com/Sumedhvats/pasteCTL_web_cli)**
-
-The CLI provides full paste management capabilities including:
-- Create pastes from files or editor
-- Retrieve and update existing pastes  
-- Automatic language detection
-- Configurable expiration settings
-
-### API Integration
-
-#### Create Paste
-```bash
-curl -X POST http://localhost:8080/api/pastes \
-  -H "Content-Type: application/json" \
-  -d '{
-    "content": "package main\n\nfunc main() {\n    println(\"Hello, World!\")\n}",
-    "language": "go",
-    "expire": "24h"
-  }'
-```
-
-#### Retrieve Paste
-```bash
-curl http://localhost:8080/api/pastes/abc123def
-```
-
-## API Reference
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/pastes` | Create a new paste |
-| `GET` | `/api/pastes/:id` | Retrieve paste with metadata |
-| `GET` | `/api/pastes/:id/raw` | Get raw paste content |
-| `PUT` | `/api/pastes/:id` | Update existing paste |
-| `DELETE` | `/api/pastes/:id` | Delete paste |
-| `PATCH` | `/api/pastes/:id/views` | Increment view counter |
-| `GET` | `/ws/pastes/:id` | WebSocket for real-time editing |
-
-### Request/Response Examples
-
-#### Create Paste Request
-```json
-{
-  "content": "console.log('Hello, World!');",
-  "language": "javascript",
-  "expire": "1h"
-}
-```
-
-#### Paste Response
-```json
-{
-  "id": "abc123def",
-  "content": "console.log('Hello, World!');",
-  "language": "javascript",
-  "created_at": "2025-01-15T10:30:00Z",
-  "expire_at": "2025-01-15T11:30:00Z",
-  "views": 0
-}
-```
-
-## Supported Languages
-
-The platform supports syntax highlighting for:
-
-| Language | Extensions | Identifier |
-|----------|------------|------------|
-| Go | `.go` | `go` |
-| Python | `.py` | `python` |
-| JavaScript | `.js` | `javascript` |
-| TypeScript | `.ts` | `typescript` |
-| Java | `.java` | `java` |
-| C++ | `.cpp`, `.cc` | `cpp` |
-| C | `.c` | `c` |
-| Rust | `.rs` | `rust` |
-| PHP | `.php` | `php` |
-| Ruby | `.rb` | `ruby` |
-| Shell | `.sh` | `bash` |
-| SQL | `.sql` | `sql` |
-| JSON | `.json` | `json` |
-| YAML | `.yml`, `.yaml` | `yaml` |
-| Markdown | `.md` | `markdown` |
-| HTML | `.html` | `html` |
-| CSS | `.css` | `css` |
-| XML | `.xml` | `xml` |
-
-## Configuration
-
-### Environment Variables
-
-#### Backend
-```env
-DB_URL=postgres://user:password@localhost:5432/pasteCTL_web?sslmode=disable
-PORT=8080
-CORS_ORIGINS=http://localhost:3000
-```
-
-#### Frontend
-```env
-NEXT_PUBLIC_BACKEND_URL=http://localhost:8080
-NEXT_PUBLIC_WS_URL=ws://localhost:8080
-```
-
-## Development
-
-### Project Structure
-
-```
-pasteCTL_web/
-├── backend/           # Go API server
-│   ├── cmd/          # Application entrypoints
-│   ├── internal/     # Internal packages
-│   └── pkg/          # Public packages
-└── frontend/         # Next.js web application
-    ├── app/          # App router pages
-    ├── components/   # React components
-    └── lib/          # Utility functions
-```
+The project includes comprehensive test coverage:
 
 ### Running Tests
 
 ```bash
-# Backend tests
-cd backend && go test ./...
+# Run all tests
+go test ./...
 
-# Frontend tests  
-cd frontend && npm test
+# Run tests with coverage
+go test -cover ./...
+
+# Run specific test suite
+go test ./internal/db/...
+go test ./internal/http/...
+go test ./internal/paste/...
 ```
 
-### Database Migration
+### Test Structure
+- **Database Tests**: Integration tests using Testcontainers with PostgreSQL
+- **HTTP Handler Tests**: Unit tests with mocked services
+- **Service Tests**: Integration tests for business logic
 
-```bash
-cd backend
-go run ./cmd/migrate.go
+## Project Structure
+
 ```
+pastectl_web/
+├── cmd/
+│   └── scheduledJob/      # Background job for cleanup
+├── internal/
+│   ├── db/                # Database layer
+│   ├── http/              # HTTP handlers
+│   ├── paste/             # Business logic
+│   └── ws/                # WebSocket handlers
+├── migrations/            # Database migrations
+├── tests/                 # Test suites
+│   ├── db_test/
+│   ├── http_test/
+│   └── service_test/
+├── frontend/              # Next.js application
+│   ├── app/
+│   │   └── paste/
+│   ├── components/
+│   └── public/
+├── main.go
+└── go.mod
+```
+
+## CLI Integration
+
+PasteCTL includes a dedicated command-line interface for terminal users. Visit the [PasteCTL CLI repository](https://github.com/sumedhvats/pastectl) for installation and usage instructions.
 
 ## Deployment
 
+### Backend (AWS EC2)
+The Go backend is deployed on AWS EC2 with the following configuration:
+- PostgreSQL database
+- Environment variables configured via `.env`
+- CORS enabled for frontend domain
+
+### Frontend (AWS Amplify)
+The Next.js frontend is deployed on AWS Amplify with automatic deployments on push to main branch.
+
+## Environment Variables
+
 ### Backend
-```bash
-cd backend
-go build -o pasteCTL_web-server ./cmd/main.go
-./pasteCTL_web-server
-```
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `DATABASE_URL` | PostgreSQL connection string | Yes |
+| `FRONTEND_URL` | Frontend application URL for CORS | Yes |
 
 ### Frontend
+Configuration is handled through Next.js environment variables (refer to frontend documentation).
+
+## Scheduled Jobs
+
+The application includes a background scheduler that runs periodic tasks:
+- **Expired Paste Cleanup**: Automatically deletes pastes that have exceeded their expiry time
+
+## Security Features
+
+- CORS configuration for cross-origin requests
+- Input validation on all endpoints
+- SQL injection prevention via parameterized queries
+- Automatic expiry of sensitive content
+
+## Performance
+
+- Connection pooling for database operations
+- Efficient WebSocket connections for live editing
+- Automatic cleanup to prevent database bloat
+
+## Development
+
+### Running in Development Mode
+
+Backend:
 ```bash
-cd frontend
-npm run build
-npm start
+go run main.go
 ```
 
-## Contributing
+Frontend:
+```bash
+cd frontend
+npm run dev
+```
 
-We welcome contributions to pasteCTL_web! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+### Code Quality
 
-### Development Setup
-
-1. Fork the repository
-2. Clone your fork: `git clone https://github.com/yourusername/pasteCTL_web.git`
-3. Create a feature branch: `git checkout -b feature/amazing-feature`
-4. Make your changes
-5. Commit your changes: `git commit -m 'Add amazing feature'`
-6. Push to your branch: `git push origin feature/amazing-feature`
-7. Open a Pull Request
-
-### Code Style
-
-- **Go**: Follow standard Go formatting (`gofmt`, `golint`)
-- **JavaScript/TypeScript**: Use Prettier and ESLint configurations
-- **Commit Messages**: Follow [Conventional Commits](https://conventionalcommits.org/)
-
-## Security
-
-For security vulnerabilities, please email security@pasteCTL_web.com instead of using the issue tracker.
-
-See our [Security Policy](SECURITY.md) for more details.
+The project follows Go best practices:
+- Proper error handling
+- Interface-based design for testability
+- Dependency injection
+- Comprehensive test coverage
 
 ## Related Projects
 
-- **[pasteCTL_web CLI](https://github.com/Sumedhvats/pasteCTL_web_cli)** - Command-line interface for terminal workflows
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+- [PasteCTL CLI](https://github.com/sumedhvats/pastectl) - Command-line interface for PasteCTL
 
 ## Support
 
-- **Issues**: [GitHub Issues](https://github.com/Sumedhvats/pasteCTL_web/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/Sumedhvats/pasteCTL_web/discussions)
-- **CLI Tool**: [pasteCTL_web CLI Repository](https://github.com/Sumedhvats/pasteCTL_web_cli)
+For issues, questions, or contributions, please visit the [GitHub Issues](https://github.com/sumedhvats/pastectl_web/issues) page.
 
----
 
 Made with ❤️ for the developer community..
