@@ -260,43 +260,6 @@ export default function PastePage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-slate-800 border-slate-700">
-              <CardContent className="p-6">
-                <h3 className="font-semibold text-white mb-4">Quick Navigate</h3>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    placeholder="Enter paste ID"
-                    className="flex-1 px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        const value = e.currentTarget.value.trim();
-                        if (value) router.push(`/paste/${value}`);
-                      }
-                    }}
-                  />
-                  <Button
-                    onClick={() => {
-                      const input = document.querySelector<HTMLInputElement>('input[placeholder="Enter paste ID"]');
-                      const value = input?.value.trim();
-                      if (value) router.push(`/paste/${value}`);
-                    }}
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white px-4"
-                  >
-                    Go
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-slate-800 border-slate-700">
-              <CardContent className="p-6">
-                <h3 className="font-semibold text-white mb-4">Actions</h3>
-                <Button onClick={createNewPaste} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white">
-                  <Plus className="w-4 h-4 mr-2" /> New paste
-                </Button>
-              </CardContent>
-            </Card>
 
             <Card className="bg-slate-800 border-slate-700">
               <CardContent className="p-6">
