@@ -34,7 +34,7 @@ export function Header() {
           <img 
             src="/favicon.svg" 
             alt="pasteCTL logo" 
-            className="w-20 h-20"
+            className="w-12 h-12"
           />
           <span className="text-xl font-bold text-white">pasteCTL</span>
         </div>
