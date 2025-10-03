@@ -156,14 +156,12 @@ export default function PastePage() {
   const createNewPaste = () => router.push('/');
 
   // Format expiry
-
-
-const formatExpiry = (expireAt?: string) => {
-  if (!expireAt) return 'Never expires';
-  const date = new Date(expireAt);
-  if (isNaN(date.getTime())) return 'Never expires';
-  return format(date, 'MMM dd, yyyy, hh:mm a');
-};
+  const formatExpiry = (expireAt?: string) => {
+    if (!expireAt) return 'Never expires';
+    const date = new Date(expireAt);
+    if (isNaN(date.getTime())) return 'Never expires';
+    return format(date, 'MMM dd, yyyy, hh:mm a');
+  };
 
   // Initialize everything on mount
   useEffect(() => {
@@ -223,7 +221,7 @@ const formatExpiry = (expireAt?: string) => {
               value={editedContent}
               onChange={handleContentChange}
               language={paste.language}
-              readOnly={false} // always editable
+              readOnly={false}
               height="500px"
             />
           </div>
@@ -258,6 +256,35 @@ const formatExpiry = (expireAt?: string) => {
                     </div>
                     <div className="text-sm text-white">{formatExpiry(paste.expire_at)}</div>
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-slate-800 border-slate-700">
+              <CardContent className="p-6">
+                <h3 className="font-semibold text-white mb-4">Quick Navigate</h3>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Enter paste ID"
+                    className="flex-1 px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        const value = e.currentTarget.value.trim();
+                        if (value) router.push(`/paste/${value}`);
+                      }
+                    }}
+                  />
+                  <Button
+                    onClick={() => {
+                      const input = document.querySelector<HTMLInputElement>('input[placeholder="Enter paste ID"]');
+                      const value = input?.value.trim();
+                      if (value) router.push(`/paste/${value}`);
+                    }}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white px-4"
+                  >
+                    Go
+                  </Button>
                 </div>
               </CardContent>
             </Card>
