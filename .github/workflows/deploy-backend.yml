@@ -5,6 +5,7 @@ on:
     branches: [ main ]
     paths:
       - 'backend/**'
+  workflow_dispatch: # Allows you to trigger a deployment manually from the GitHub UI
 
 jobs:
   deploy:
@@ -34,7 +35,7 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
-          script: mkdir -p ~/pasteCTL_web/backend
+          script: mkdir -p /home/ubuntu/pasteCTL_web/backend
 
       - name: Deploy server binary
         uses: appleboy/scp-action@v0.1.7
@@ -43,7 +44,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           source: "./backend/server"
-          target: "~/pasteCTL_web/backend/"
+          target: "/home/ubuntu/pasteCTL_web/backend/"
           strip_components: 1
           overwrite: true
 
@@ -54,5 +55,5 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            sudo chmod +x ~/pasteCTL_web/backend/server
+            sudo chmod +x /home/ubuntu/pasteCTL_web/backend/server
             sudo systemctl restart pasteCTL-backend.service
