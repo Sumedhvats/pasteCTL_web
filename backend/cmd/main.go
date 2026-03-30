@@ -14,7 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
-
+//entry to program
 func main() {
 	db.Init()
 	defer db.Close()
