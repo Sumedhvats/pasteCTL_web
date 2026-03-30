@@ -5,7 +5,7 @@ on:
     branches: [ main ]
     paths:
       - 'backend/**'
-  workflow_dispatch: # Allows you to trigger a deployment manually from the GitHub UI
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -45,7 +45,6 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           source: "./backend/server"
           target: "/home/ubuntu/pasteCTL_web/backend/"
-          strip_components: 1
           overwrite: true
 
       - name: Restart Service
@@ -55,5 +54,12 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            # 1. If the file is stuck in the double folder, move it out and delete the empty folder
+            if [ -f /home/ubuntu/pasteCTL_web/backend/backend/server ]; then
+              mv /home/ubuntu/pasteCTL_web/backend/backend/server /home/ubuntu/pasteCTL_web/backend/server
+              rm -rf /home/ubuntu/pasteCTL_web/backend/backend
+            fi
+            
+            # 2. Make it executable and restart the service!
             sudo chmod +x /home/ubuntu/pasteCTL_web/backend/server
             sudo systemctl restart pasteCTL-backend.service
