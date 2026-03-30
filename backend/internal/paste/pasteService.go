@@ -39,7 +39,6 @@ func (s *pasteService)CreatePaste(content string, lang string, expireMinutes int
 		t := time.Now().Add(time.Duration(expireMinutes) * time.Minute)
 		expireTime = &t
 	}
-
 	for i := 0; i < 5; i++ {
 		id :=pkg.GenerateId(5)
 		paste := &db.Paste{
@@ -48,7 +47,6 @@ func (s *pasteService)CreatePaste(content string, lang string, expireMinutes int
 			Language: lang,
 			ExpireAt: expireTime,
 		}
-
 		err := s.repo.CreatePaste(paste)
 		if err == nil {
 			return paste, nil
