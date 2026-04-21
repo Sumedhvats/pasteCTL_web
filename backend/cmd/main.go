@@ -4,15 +4,20 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"time"
+
 	Scheduledjob "github.com/Sumedhvats/pasteCTL_web/cmd/scheduledJob"
 	"github.com/Sumedhvats/pasteCTL_web/internal/db"
 	"github.com/Sumedhvats/pasteCTL_web/internal/http"
+	rateLimitMiddleware "github.com/Sumedhvats/pasteCTL_web/internal/middleware"
 	pasteService "github.com/Sumedhvats/pasteCTL_web/internal/paste"
 	"github.com/Sumedhvats/pasteCTL_web/internal/ws"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"github.com/sumedhvats/rate-limiter-go/pkg/limiter"
+	"github.com/sumedhvats/rate-limiter-go/pkg/storage"
 )
 func main() {
 	db.Init()
@@ -37,6 +42,23 @@ func main() {
 	config.MaxAge = 12 * time.Hour
 
 	r.Use(cors.New(config))
+
+	// --- Rate Limiting (rate-limiter-go) ---
+	rateLimit := 60 // default: 60 requests per minute per IP
+	if v := os.Getenv("RATE_LIMIT"); v != "" {
+		if parsed, err := strconv.Atoi(v); err == nil && parsed > 0 {
+			rateLimit = parsed
+		}
+	}
+	rlConfig := limiter.Config{
+		Rate:   rateLimit,
+		Window: 1 * time.Minute,
+	}
+	store := storage.NewMemoryStorage()
+	rateLimiter := limiter.NewSlidingWindowLimiter(store, rlConfig)
+	r.Use(rateLimitMiddleware.RateLimitMiddleware(rateLimiter, rlConfig))
+	log.Printf("Rate limiting enabled: %d requests/minute per IP", rateLimit)
+
 	r.POST("/api/pastes", handler.CreatePasteHandler)
 	r.GET("/api/pastes/:id", handler.GetPasteHandler)
 	r.GET("/api/pastes/:id/raw", handler.GetContentHandler)
