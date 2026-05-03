@@ -12,10 +12,9 @@ export const metadata: Metadata = {
   description: 'Share code snippets with syntax highlighting and real-time editing',
   manifest: '/site.webmanifest',
   verification: {
-    google: 'YcJWaQ1ezwJ74yqZRaXXXXXXX',
+    google: 'YcJWaQ1ezwJ74yqZRaPN3H8uBG4AUsbpocW9Z-xlhhk',
   },
 };
-
 export default function RootLayout({
   children,
 }: {
