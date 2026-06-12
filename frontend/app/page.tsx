@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Send, Code, Clock, Lightbulb, X, Terminal, Download, Link, Wand2 } from 'lucide-react';
+import { Send, Code, Clock, Lightbulb, X, Terminal, Download, Link, Wand2, Upload, FileText } from 'lucide-react';
 import { CodeEditor } from '@/components/code-editor';
 import { Header } from '@/components/header';
 import { toast } from 'sonner';
@@ -133,6 +133,17 @@ const EXPIRY_OPTIONS = [
   { value: 'never', label: 'Never' },
 ];
 
+/** Maps file extensions to language values */
+const EXT_TO_LANGUAGE: Record<string, string> = {
+  '.js': 'javascript', '.jsx': 'javascript', '.ts': 'javascript', '.tsx': 'javascript', '.mjs': 'javascript', '.cjs': 'javascript',
+  '.py': 'python', '.pyw': 'python',
+  '.java': 'java',
+  '.cpp': 'cpp', '.cc': 'cpp', '.cxx': 'cpp', '.hpp': 'cpp', '.hxx': 'cpp', '.h': 'cpp',
+  '.c': 'c',
+  '.go': 'go',
+  '.sql': 'sql',
+};
+
 export default function CreatePaste() {
   const [content, setContent] = useState('');
   const [language, setLanguage] = useState('plain');
@@ -144,8 +155,11 @@ export default function CreatePaste() {
   const [isCreating, setIsCreating] = useState(false);
   const [showCliPopup, setShowCliPopup] = useState(false);
   const [hasShownPopup, setHasShownPopup] = useState(false);
+  const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
   const router = useRouter();
   const detectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const validateCustomId = (id: string) => {
     if (!id) { setCustomIdError(''); return true; }
@@ -181,6 +195,70 @@ export default function CreatePaste() {
     }
   }, [manuallySelected]);
 
+  // File upload handler
+  const handleFileUpload = useCallback((file: File) => {
+    // Check file size (max 1MB)
+    if (file.size > 1024 * 1024) {
+      toast.error('File too large. Maximum size is 1MB.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target?.result as string;
+      if (!text) {
+        toast.error('Could not read file');
+        return;
+      }
+
+      setContent(text);
+      setUploadedFileName(file.name);
+
+      // Detect language from extension
+      const dotIndex = file.name.lastIndexOf('.');
+      const ext = dotIndex !== -1 ? file.name.slice(dotIndex).toLowerCase() : '';
+      const detectedLang = EXT_TO_LANGUAGE[ext];
+
+      if (detectedLang) {
+        setLanguage(detectedLang);
+        setIsAutoDetected(true);
+        setManuallySelected(false);
+      } else {
+        // Fall back to content-based detection
+        const contentDetected = detectLanguage(text);
+        setLanguage(contentDetected);
+        setIsAutoDetected(contentDetected !== 'plain');
+        setManuallySelected(false);
+      }
+
+      toast.success(`Loaded ${file.name}`);
+    };
+    reader.onerror = () => toast.error('Failed to read file');
+    reader.readAsText(file);
+  }, []);
+
+  // Drag and drop handlers
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+
+    const file = e.dataTransfer.files?.[0];
+    if (file) handleFileUpload(file);
+  }, [handleFileUpload]);
+
   // Handle manual language selection
   const handleLanguageChange = useCallback((value: string) => {
     setLanguage(value);
@@ -194,6 +272,7 @@ export default function CreatePaste() {
       setManuallySelected(false);
       setIsAutoDetected(false);
       setLanguage('plain');
+      setUploadedFileName(null);
     }
   }, [content]);
 
@@ -363,13 +442,67 @@ export default function CreatePaste() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Main Editor */}
           <div className="lg:col-span-3">
-            <CodeEditor
-              value={content}
-              onChange={handleContentChange}
-              language={language}
-              placeholder="Paste your code here..."
-              height="500px"
-            />
+            {/* Upload bar */}
+            <div className="flex items-center gap-3 mb-3">
+              <input
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                accept=".js,.jsx,.ts,.tsx,.mjs,.cjs,.py,.pyw,.java,.cpp,.cc,.cxx,.hpp,.c,.h,.go,.sql,.txt,.md,.json,.xml,.yaml,.yml,.toml,.csv,.sh,.bash,.rb,.rs,.swift,.kt,.cs,.php,.html,.css,.scss,.sass,.less"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleFileUpload(file);
+                  e.target.value = ''; // reset so the same file can be re-uploaded
+                }}
+              />
+              <Button
+                onClick={() => fileInputRef.current?.click()}
+                variant="secondary"
+                className="bg-slate-700 hover:bg-slate-600 text-white text-sm h-9"
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                Upload File
+              </Button>
+              {uploadedFileName && (
+                <div className="flex items-center gap-2 bg-slate-700 rounded-md px-3 py-1.5 text-sm">
+                  <FileText className="w-3.5 h-3.5 text-emerald-400" />
+                  <span className="text-slate-200">{uploadedFileName}</span>
+                  <button
+                    onClick={() => setUploadedFileName(null)}
+                    className="text-slate-400 hover:text-white ml-1 transition-colors"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+              <span className="text-xs text-slate-500 ml-auto">or drag & drop a file</span>
+            </div>
+
+            {/* Editor with drop zone */}
+            <div
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              className={`relative transition-all duration-200 rounded-lg ${
+                isDragOver ? 'ring-2 ring-emerald-400 ring-offset-2 ring-offset-slate-900' : ''
+              }`}
+            >
+              {isDragOver && (
+                <div className="absolute inset-0 bg-emerald-500/10 backdrop-blur-sm z-10 rounded-lg flex items-center justify-center border-2 border-dashed border-emerald-400">
+                  <div className="flex flex-col items-center gap-2">
+                    <Upload className="w-8 h-8 text-emerald-400" />
+                    <span className="text-emerald-400 font-semibold">Drop file here</span>
+                  </div>
+                </div>
+              )}
+              <CodeEditor
+                value={content}
+                onChange={handleContentChange}
+                language={language}
+                placeholder="Paste your code here..."
+                height="500px"
+              />
+            </div>
           </div>
 
           {/* Sidebar */}
