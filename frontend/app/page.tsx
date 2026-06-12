@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Send, Code, Clock, Lightbulb, X, Terminal, Download } from 'lucide-react';
+import { Send, Code, Clock, Lightbulb, X, Terminal, Download, Link } from 'lucide-react';
 import { CodeEditor } from '@/components/code-editor';
 import { Header } from '@/components/header';
 import { toast } from 'sonner';
@@ -33,10 +33,31 @@ export default function CreatePaste() {
   const [content, setContent] = useState('');
   const [language, setLanguage] = useState('plain');
   const [expiry, setExpiry] = useState('24h');
+  const [customId, setCustomId] = useState('');
+  const [customIdError, setCustomIdError] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [showCliPopup, setShowCliPopup] = useState(false);
   const [hasShownPopup, setHasShownPopup] = useState(false);
   const router = useRouter();
+
+  const validateCustomId = (id: string) => {
+    if (!id) { setCustomIdError(''); return true; }
+    if (id.length < 3 || id.length > 30) {
+      setCustomIdError('Must be 3-30 characters');
+      return false;
+    }
+    if (!/^[a-z0-9][a-z0-9-]*[a-z0-9]$/.test(id)) {
+      setCustomIdError('Lowercase letters, numbers, and hyphens only');
+      return false;
+    }
+    const reserved = ['api', 'paste', 'raw', 'ws', 'admin', 'new'];
+    if (reserved.includes(id)) {
+      setCustomIdError('This URL is reserved');
+      return false;
+    }
+    setCustomIdError('');
+    return true;
+  };
 
   // CLI popup timer
   useEffect(() => {
@@ -56,6 +77,11 @@ export default function CreatePaste() {
       return;
     }
 
+    if (customId && !validateCustomId(customId)) {
+      toast.error('Invalid custom URL');
+      return;
+    }
+
     setIsCreating(true);
 
     try {
@@ -70,11 +96,19 @@ export default function CreatePaste() {
         body: JSON.stringify({
           content,
           language,
-          expire: expiry, // optional: send original expiry to backend
+          expire: expiry,
+          ...(customId && { id: customId }),
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to create paste');
+      if (response.status === 409) {
+        toast.error('This paste URL is already taken');
+        return;
+      }
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+        throw new Error(data?.error || 'Failed to create paste');
+      }
 
       const paste = await response.json();
 
@@ -218,6 +252,36 @@ export default function CreatePaste() {
                     ))}
                   </SelectContent>
                 </Select>
+              </CardContent>
+            </Card>
+
+            {/* Custom URL */}
+            <Card className="bg-slate-800 border-slate-700">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <Link className="w-4 h-4 text-emerald-400" />
+                  <h3 className="font-semibold text-white">Custom URL</h3>
+                </div>
+                <input
+                  type="text"
+                  value={customId}
+                  onChange={(e) => {
+                    const val = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+                    setCustomId(val);
+                    validateCustomId(val);
+                  }}
+                  placeholder="e.g. my-snippet"
+                  className="w-full bg-slate-700 border border-slate-600 text-white rounded-md px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+                {customIdError && (
+                  <p className="text-red-400 text-xs mt-1">{customIdError}</p>
+                )}
+                {customId && !customIdError && (
+                  <p className="text-slate-400 text-xs mt-1">paste.sumedh.app/paste/{customId}</p>
+                )}
+                {!customId && (
+                  <p className="text-slate-500 text-xs mt-1">Leave empty for a random URL</p>
+                )}
               </CardContent>
             </Card>
 

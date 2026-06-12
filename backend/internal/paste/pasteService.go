@@ -2,7 +2,10 @@ package pasteService
 
 import (
 	"errors"
+	"fmt"
 	"log"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/Sumedhvats/pasteCTL_web/internal/db"
@@ -10,7 +13,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 type PasteService interface {
-	CreatePaste(content string, lang string, expireMinutes int) (*db.Paste, error)
+	CreatePaste(content string, lang string, expireMinutes int, customId string) (*db.Paste, error)
 	GetPaste(id string) (*db.Paste, error)
 	GetContent(id string) (string, error)
 	UpdatePaste(id string,content string, lang string)(*db.Paste,error)
@@ -20,7 +23,16 @@ type PasteService interface {
 var (
     ErrPasteNotFound = errors.New("paste not found")
     ErrPasteExpired  = errors.New("paste has expired")
+    ErrIdTaken       = errors.New("paste URL already taken")
+    ErrInvalidId     = errors.New("invalid custom URL")
 )
+
+var validIdPattern = regexp.MustCompile(`^[a-z0-9][a-z0-9-]*[a-z0-9]$`)
+var reservedIds = map[string]bool{
+	"api": true, "paste": true, "raw": true,
+	"ws": true, "admin": true, "new": true,
+}
+
 type pasteService struct{
 	repo db.Repository
 }
@@ -29,7 +41,21 @@ func NewPasteService(r db.Repository)PasteService{
 		repo:r,
 	}
 }
-func (s *pasteService)CreatePaste(content string, lang string, expireMinutes int) (*db.Paste, error) {
+
+func validateCustomId(id string) error {
+	if len(id) < 3 || len(id) > 30 {
+		return errors.New("custom URL must be 3-30 characters")
+	}
+	if !validIdPattern.MatchString(id) {
+		return errors.New("custom URL can only contain lowercase letters, numbers, and hyphens")
+	}
+	if reservedIds[id] {
+		return errors.New("this URL is reserved")
+	}
+	return nil
+}
+
+func (s *pasteService)CreatePaste(content string, lang string, expireMinutes int, customId string) (*db.Paste, error) {
 	if content == "" || lang == "" {
 		return nil, errors.New("content and language required")
 	}
@@ -39,6 +65,28 @@ func (s *pasteService)CreatePaste(content string, lang string, expireMinutes int
 		t := time.Now().Add(time.Duration(expireMinutes) * time.Minute)
 		expireTime = &t
 	}
+
+	if customId != "" {
+		customId = strings.ToLower(customId)
+		if err := validateCustomId(customId); err != nil {
+			return nil, fmt.Errorf("%w: %s", ErrInvalidId, err.Error())
+		}
+		paste := &db.Paste{
+			ID:       customId,
+			Content:  content,
+			Language: lang,
+			ExpireAt: expireTime,
+		}
+		err := s.repo.CreatePaste(paste)
+		if err != nil {
+			if strings.Contains(err.Error(), "duplicate key") || strings.Contains(err.Error(), "unique") {
+				return nil, ErrIdTaken
+			}
+			return nil, err
+		}
+		return paste, nil
+	}
+
 	for i := 0; i < 5; i++ {
 		id :=pkg.GenerateId(5)
 		paste := &db.Paste{

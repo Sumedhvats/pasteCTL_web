@@ -57,7 +57,7 @@ func TestPasteService_CreateAndGet(t *testing.T) {
 	service := setupServiceTest(t)
 
 	// Test case: Creating a paste with empty content should fail
-	_, err := service.CreatePaste("", "go", 0)
+	_, err := service.CreatePaste("", "go", 0, "")
 	assert.EqualError(t, err, "content and language required")
 
 
@@ -65,7 +65,7 @@ func TestPasteService_CreateAndGet(t *testing.T) {
 	lang := "go"
 	expireMinutes := 10
 
-	createdPaste, err := service.CreatePaste(content, lang, expireMinutes)
+	createdPaste, err := service.CreatePaste(content, lang, expireMinutes, "")
 	require.NoError(t, err) 
 	require.NotNil(t, createdPaste)
 
@@ -85,7 +85,7 @@ func TestPasteService_Update(t *testing.T) {
 	service := setupServiceTest(t)
 
 	// 1. Create an initial paste
-	original, err := service.CreatePaste("original content", "text", 10)
+	original, err := service.CreatePaste("original content", "text", 10, "")
 	require.NoError(t, err)
 
 	// 2. Update the paste
@@ -110,7 +110,7 @@ func TestPasteService_GetPaste_Scenarios(t *testing.T) {
 
 	assert.ErrorIs(t, err, pasteService.ErrPasteNotFound)
 
-	expiredPaste, err := service.CreatePaste("this will expire", "text", -1) // Expired 1 minute ago
+	expiredPaste, err := service.CreatePaste("this will expire", "text", -1, "") // Expired 1 minute ago
 	require.NoError(t, err)
 
 	_, err = service.GetPaste(expiredPaste.ID)
@@ -121,7 +121,7 @@ func TestPasteService_UpdateViews(t *testing.T) {
 	service := setupServiceTest(t)
 
 	// 1. Create a paste, which starts with 0 views
-	paste, err := service.CreatePaste("a paste to be viewed", "text", 10)
+	paste, err := service.CreatePaste("a paste to be viewed", "text", 10, "")
 	require.NoError(t, err)
 
 
@@ -139,10 +139,10 @@ func TestPasteService_DeleteExpiredPastes(t *testing.T) {
 	service := setupServiceTest(t)
 
 	// 1. Create one paste that is expired and one that is not
-	expiredPaste, err := service.CreatePaste("I am expired", "text", -5) // Expired 5 minutes ago
+	expiredPaste, err := service.CreatePaste("I am expired", "text", -5, "") // Expired 5 minutes ago
 	require.NoError(t, err)
 
-	activePaste, err := service.CreatePaste("I am still active", "text", 30) // Expires in 30 minutes
+	activePaste, err := service.CreatePaste("I am still active", "text", 30, "") // Expires in 30 minutes
 	require.NoError(t, err)
 
 	err = service.DeleteExpiredPastes()

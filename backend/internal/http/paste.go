@@ -11,6 +11,8 @@ import (
 var (
     ErrPasteNotFound = errors.New("paste not found")
     ErrPasteExpired  = errors.New("paste has expired")
+    ErrIdTaken       = errors.New("paste URL already taken")
+    ErrInvalidId     = errors.New("invalid custom URL")
 )
 type Handler struct {
 	Service pasteService.PasteService
@@ -24,9 +26,10 @@ func NewHandler(svc pasteService.PasteService) *Handler {
 
 func (h *Handler) CreatePasteHandler(c *gin.Context) {
 	type CreatePasteRequest struct {
+		ID       string `json:"id"`
 		Content  string `json:"content" binding:"required"`
 		Language string `json:"language" binding:"required"`
-		Expire   string `json:"expire"` // "1h", "24h", "7d", "never"
+		Expire   string `json:"expire"`
 	}
 
 	var req CreatePasteRequest
@@ -36,7 +39,7 @@ func (h *Handler) CreatePasteHandler(c *gin.Context) {
 	}
 expireMinutes := 0
 if req.Expire != "" && req.Expire != "never" {
-    duration, err := parseExpiry(req.Expire) // time.Duration
+    duration, err := parseExpiry(req.Expire)
     if err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid expire format"})
         return
@@ -44,8 +47,16 @@ if req.Expire != "" && req.Expire != "never" {
     expireMinutes = int(duration.Minutes())
 }
 
-p, err := h.Service.CreatePaste(req.Content, req.Language, expireMinutes)
+p, err := h.Service.CreatePaste(req.Content, req.Language, expireMinutes, req.ID)
 	if err != nil {
+		if errors.Is(err, pasteService.ErrIdTaken) {
+			c.JSON(http.StatusConflict, gin.H{"error": "This paste URL is already taken"})
+			return
+		}
+		if errors.Is(err, pasteService.ErrInvalidId) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 		log.Printf("Failed to create paste: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create paste"})
 		return

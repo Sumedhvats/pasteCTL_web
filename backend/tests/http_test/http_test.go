@@ -11,6 +11,7 @@ import (
 
 	"github.com/Sumedhvats/pasteCTL_web/internal/db"
 	httpHandler "github.com/Sumedhvats/pasteCTL_web/internal/http"
+	pasteService "github.com/Sumedhvats/pasteCTL_web/internal/paste"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -21,8 +22,8 @@ type MockPasteService struct {
 	mock.Mock
 }
 
-func (m *MockPasteService) CreatePaste(content, language string, expireMinutes int) (*db.Paste, error) {
-	args := m.Called(content, language, expireMinutes)
+func (m *MockPasteService) CreatePaste(content, language string, expireMinutes int, customId string) (*db.Paste, error) {
+	args := m.Called(content, language, expireMinutes, customId)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
@@ -86,7 +87,7 @@ func TestCreatePasteHandler(t *testing.T) {
 			ExpireAt: &expireAt,
 			Views:    0,
 		}
-		mockService.On("CreatePaste", "test content", "go", 60).
+		mockService.On("CreatePaste", "test content", "go", 60, "").
 			Return(expectedPaste, nil).Once()
 		body := map[string]any{
 			"content":  "test content",
@@ -107,6 +108,88 @@ func TestCreatePasteHandler(t *testing.T) {
 		assert.Equal(t, expectedPaste.ID, responsePaste.ID)
 		assert.Equal(t, expectedPaste.Content, responsePaste.Content)
 
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("creation with custom id", func(t *testing.T) {
+		mockService := new(MockPasteService)
+		handler := httpHandler.NewHandler(mockService)
+		router := setupRouter(handler)
+
+		expectedPaste := &db.Paste{
+			ID:       "my-snippet",
+			Content:  "hello world",
+			Language: "plain",
+			Views:    0,
+		}
+		mockService.On("CreatePaste", "hello world", "plain", 0, "my-snippet").
+			Return(expectedPaste, nil).Once()
+
+		body := map[string]any{
+			"id":       "my-snippet",
+			"content":  "hello world",
+			"language": "plain",
+			"expire":   "never",
+		}
+		jsonBody, _ := json.Marshal(body)
+		req := httptest.NewRequest("POST", "/pastes", bytes.NewReader(jsonBody))
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		var response db.Paste
+		err := json.NewDecoder(w.Body).Decode(&response)
+		require.NoError(t, err)
+		assert.Equal(t, "my-snippet", response.ID)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("custom id already taken", func(t *testing.T) {
+		mockService := new(MockPasteService)
+		handler := httpHandler.NewHandler(mockService)
+		router := setupRouter(handler)
+
+		mockService.On("CreatePaste", "some content", "go", 0, "taken-slug").
+			Return(nil, pasteService.ErrIdTaken).Once()
+
+		body := map[string]any{
+			"id":       "taken-slug",
+			"content":  "some content",
+			"language": "go",
+			"expire":   "never",
+		}
+		jsonBody, _ := json.Marshal(body)
+		req := httptest.NewRequest("POST", "/pastes", bytes.NewReader(jsonBody))
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusConflict, w.Code)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("invalid custom id", func(t *testing.T) {
+		mockService := new(MockPasteService)
+		handler := httpHandler.NewHandler(mockService)
+		router := setupRouter(handler)
+
+		mockService.On("CreatePaste", "content", "go", 0, "ab").
+			Return(nil, pasteService.ErrInvalidId).Once()
+
+		body := map[string]any{
+			"id":       "ab",
+			"content":  "content",
+			"language": "go",
+			"expire":   "never",
+		}
+		jsonBody, _ := json.Marshal(body)
+		req := httptest.NewRequest("POST", "/pastes", bytes.NewReader(jsonBody))
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
 		mockService.AssertExpectations(t)
 	})
 
