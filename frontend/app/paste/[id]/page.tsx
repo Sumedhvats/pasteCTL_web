@@ -5,7 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CreditCard as Edit, Copy, Eye, Calendar, Clock, Plus, Download } from 'lucide-react';
+import { CreditCard as Edit, Copy, Eye, Calendar, Clock, Plus, Download, QrCode, Share2 } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import { CodeEditor } from '@/components/code-editor';
 import { Header } from '@/components/header';
 import { toast } from 'sonner';
@@ -292,6 +293,56 @@ export default function PastePage() {
               </CardContent>
             </Card>
 
+            {/* QR Code Share */}
+            <Card className="bg-slate-800 border-slate-700">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <QrCode className="w-4 h-4 text-emerald-400" />
+                  <h3 className="font-semibold text-white">Share</h3>
+                </div>
+                <div className="flex flex-col items-center gap-3">
+                  <div className="bg-white p-3 rounded-lg">
+                    <QRCodeSVG
+                      id="paste-qr-code"
+                      value={typeof window !== 'undefined' ? window.location.href : `https://paste.sumedh.app/paste/${pasteId}`}
+                      size={140}
+                      level="M"
+                      bgColor="#ffffff"
+                      fgColor="#1e293b"
+                    />
+                  </div>
+                  <p className="text-xs text-slate-400 text-center">Scan to open this paste</p>
+                  <Button
+                    onClick={() => {
+                      const svg = document.getElementById('paste-qr-code');
+                      if (!svg) return;
+                      const svgData = new XMLSerializer().serializeToString(svg);
+                      const canvas = document.createElement('canvas');
+                      canvas.width = 280;
+                      canvas.height = 280;
+                      const ctx = canvas.getContext('2d');
+                      const img = new Image();
+                      img.onload = () => {
+                        ctx!.fillStyle = '#ffffff';
+                        ctx!.fillRect(0, 0, 280, 280);
+                        ctx!.drawImage(img, 0, 0, 280, 280);
+                        const link = document.createElement('a');
+                        link.download = `paste-${pasteId}-qr.png`;
+                        link.href = canvas.toDataURL('image/png');
+                        link.click();
+                        toast.success('QR code downloaded');
+                      };
+                      img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
+                    }}
+                    variant="secondary"
+                    className="w-full bg-slate-700 hover:bg-slate-600 text-white text-sm"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Download QR
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
 
             <Card className="bg-slate-800 border-slate-700">
               <CardContent className="p-6">
