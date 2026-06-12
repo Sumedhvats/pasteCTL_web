@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CreditCard as Edit, Copy, Eye, Calendar, Clock, Plus } from 'lucide-react';
+import { CreditCard as Edit, Copy, Eye, Calendar, Clock, Plus, Download } from 'lucide-react';
 import { CodeEditor } from '@/components/code-editor';
 import { Header } from '@/components/header';
 import { toast } from 'sonner';
@@ -147,6 +147,35 @@ export default function PastePage() {
     }
   };
 
+  // Download paste as file
+  const getFileExtension = (lang: string): string => {
+    const extensionMap: Record<string, string> = {
+      javascript: '.js',
+      python: '.py',
+      java: '.java',
+      cpp: '.cpp',
+      c: '.c',
+      go: '.go',
+      sql: '.sql',
+    };
+    return extensionMap[lang] || '.txt';
+  };
+
+  const downloadFile = () => {
+    const ext = getFileExtension(paste?.language || 'plain');
+    const filename = `${pasteId}${ext}`;
+    const blob = new Blob([editedContent], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success(`Downloaded as ${filename}`);
+  };
+
   // View raw paste
   const viewRaw = () => {
     window.open(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/pastes/${pasteId}/raw`, '_blank');
@@ -208,6 +237,9 @@ export default function PastePage() {
           <div className="flex items-center gap-3">
             <Button onClick={copyToClipboard} variant="secondary" className="bg-slate-700 hover:bg-slate-600 text-white">
               <Copy className="w-4 h-4 mr-2" /> Copy
+            </Button>
+            <Button onClick={downloadFile} variant="secondary" className="bg-slate-700 hover:bg-slate-600 text-white">
+              <Download className="w-4 h-4 mr-2" /> Download
             </Button>
             <Button onClick={viewRaw} variant="secondary" className="bg-slate-700 hover:bg-slate-600 text-white">
               Raw
