@@ -49,7 +49,7 @@ func (r *repo) GetPaste(ID string) (*Paste, error) {
     err := row.Scan(&pp.ID, &pp.Content, &pp.Language, &pp.CreatedAt, &pp.ExpireAt, &pp.Views)
     if err != nil {
         if err == sql.ErrNoRows {
-            return nil, nil 
+            return nil,err
         }
         return nil, err
     }
