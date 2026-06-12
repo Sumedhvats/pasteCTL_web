@@ -1,6 +1,6 @@
 package pkg
 import "math/rand"
-const characters="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+const characters="abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 
 func GenerateId(n int)string{
 	b:=make([]byte, n)

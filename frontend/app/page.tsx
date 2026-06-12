@@ -6,10 +6,114 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Send, Code, Clock, Lightbulb, X, Terminal, Download, Link } from 'lucide-react';
+import { Send, Code, Clock, Lightbulb, X, Terminal, Download, Link, Wand2 } from 'lucide-react';
 import { CodeEditor } from '@/components/code-editor';
 import { Header } from '@/components/header';
 import { toast } from 'sonner';
+
+/**
+ * Detects programming language from code content using heuristic pattern matching.
+ * Returns a language value matching the LANGUAGES array, or 'plain' if no confident match.
+ */
+function detectLanguage(code: string): string {
+  if (!code || code.trim().length < 10) return 'plain';
+
+  const lines = code.split('\n');
+  const trimmed = code.trim();
+
+  // Score each language based on pattern matches
+  const scores: Record<string, number> = {
+    javascript: 0,
+    python: 0,
+    java: 0,
+    cpp: 0,
+    c: 0,
+    go: 0,
+    sql: 0,
+  };
+
+  // --- JavaScript / TypeScript ---
+  if (/\b(const|let|var)\s+\w+\s*=/.test(trimmed)) scores.javascript += 3;
+  if (/\b(import|export)\s+.*\s+from\s+['"]/.test(trimmed)) scores.javascript += 4;
+  if (/\brequire\s*\(/.test(trimmed)) scores.javascript += 3;
+  if (/=>/m.test(trimmed)) scores.javascript += 2;
+  if (/\bconsole\.(log|error|warn)\b/.test(trimmed)) scores.javascript += 3;
+  if (/\b(async|await)\b/.test(trimmed)) scores.javascript += 2;
+  if (/\bfunction\s+\w+\s*\(/.test(trimmed)) scores.javascript += 2;
+  if (/\bdocument\.|window\.|\$\(/.test(trimmed)) scores.javascript += 3;
+  if (/\b(useState|useEffect|useRef)\b/.test(trimmed)) scores.javascript += 4;
+  if (/\b(interface|type)\s+\w+\s*[{=]/.test(trimmed)) scores.javascript += 3;
+
+  // --- Python ---
+  if (/^(import|from)\s+\w+/m.test(trimmed) && !/[;{}]/.test(trimmed)) scores.python += 4;
+  if (/^def\s+\w+\s*\(.*\)\s*(->[^:]*)?:/m.test(trimmed)) scores.python += 5;
+  if (/^class\s+\w+.*:/m.test(trimmed)) scores.python += 4;
+  if (/\bprint\s*\(/.test(trimmed)) scores.python += 2;
+  if (/\bself\b/.test(trimmed)) scores.python += 3;
+  if (/^\s*(if|for|while|elif|else)\s+.*:/m.test(trimmed)) scores.python += 3;
+  if (/__\w+__/.test(trimmed)) scores.python += 3;
+  if (/\b(True|False|None)\b/.test(trimmed)) scores.python += 2;
+  if (/\brange\s*\(/.test(trimmed)) scores.python += 2;
+  if (/^\s*@\w+/m.test(trimmed)) scores.python += 2;
+
+  // --- Java ---
+  if (/^\s*public\s+(static\s+)?(void|class|int|String|boolean)\b/m.test(trimmed)) scores.java += 5;
+  if (/\bSystem\.out\.println\b/.test(trimmed)) scores.java += 5;
+  if (/^\s*(private|protected|public)\s+\w+\s+\w+\s*[=(]/.test(trimmed)) scores.java += 3;
+  if (/^\s*package\s+[\w.]+;/m.test(trimmed)) scores.java += 5;
+  if (/^\s*import\s+java\./m.test(trimmed)) scores.java += 5;
+  if (/\bnew\s+\w+\s*\(/.test(trimmed) && /;\s*$/.test(lines[0]?.trim() || '')) scores.java += 2;
+  if (/\b(ArrayList|HashMap|Scanner|IOException)\b/.test(trimmed)) scores.java += 3;
+  if (/@Override/m.test(trimmed)) scores.java += 4;
+
+  // --- C++ ---
+  if (/^\s*#include\s*<(iostream|vector|string|algorithm|map|set|queue)>/m.test(trimmed)) scores.cpp += 5;
+  if (/\bstd::|cout|cin|endl|cerr\b/.test(trimmed)) scores.cpp += 5;
+  if (/\busing\s+namespace\s+std\b/.test(trimmed)) scores.cpp += 5;
+  if (/\b(template|typename|nullptr|auto)\b/.test(trimmed)) scores.cpp += 3;
+  if (/\bclass\s+\w+\s*(:\s*(public|private|protected))?\s*\{/.test(trimmed)) scores.cpp += 3;
+  if (/\bvector\s*</.test(trimmed)) scores.cpp += 3;
+
+  // --- C ---
+  if (/^\s*#include\s*<(stdio|stdlib|string|math|unistd|fcntl)\.h>/m.test(trimmed)) scores.c += 5;
+  if (/\b(printf|scanf|malloc|free|sizeof)\s*\(/.test(trimmed)) scores.c += 4;
+  if (/\bint\s+main\s*\(\s*(void|int\s+argc)/.test(trimmed)) scores.c += 4;
+  if (/\b(typedef|struct|enum)\s+\w+/.test(trimmed)) scores.c += 2;
+  if (/->\w+/.test(trimmed) && /\bmalloc\b/.test(trimmed)) scores.c += 3;
+
+  // --- Go ---
+  if (/^package\s+\w+/m.test(trimmed)) scores.go += 5;
+  if (/^\s*func\s+(\(\w+\s+\*?\w+\)\s+)?\w+\s*\(/m.test(trimmed)) scores.go += 4;
+  if (/\bfmt\.(Println|Printf|Sprintf|Fprintf)\b/.test(trimmed)) scores.go += 5;
+  if (/:=/.test(trimmed)) scores.go += 3;
+  if (/^\s*import\s+\(/m.test(trimmed)) scores.go += 4;
+  if (/\b(chan|goroutine|go\s+func|defer|select)\b/.test(trimmed)) scores.go += 3;
+  if (/\berr\s*!=\s*nil\b/.test(trimmed)) scores.go += 4;
+  if (/\binterface\s*\{/.test(trimmed)) scores.go += 2;
+
+  // --- SQL ---
+  if (/^\s*(SELECT|INSERT|UPDATE|DELETE|CREATE|ALTER|DROP)\b/im.test(trimmed)) scores.sql += 5;
+  if (/\b(FROM|WHERE|JOIN|GROUP\s+BY|ORDER\s+BY|HAVING|LIMIT)\b/i.test(trimmed)) scores.sql += 3;
+  if (/\b(VARCHAR|INTEGER|BOOLEAN|TIMESTAMP|TEXT|SERIAL|PRIMARY\s+KEY)\b/i.test(trimmed)) scores.sql += 4;
+  if (/\b(CREATE\s+TABLE|ALTER\s+TABLE|DROP\s+TABLE)\b/i.test(trimmed)) scores.sql += 5;
+  if (/\b(INNER|LEFT|RIGHT|OUTER)\s+JOIN\b/i.test(trimmed)) scores.sql += 4;
+
+  // Find the highest scoring language
+  let bestLang = 'plain';
+  let bestScore = 0;
+  for (const [lang, score] of Object.entries(scores)) {
+    if (score > bestScore) {
+      bestScore = score;
+      bestLang = lang;
+    }
+  }
+
+  // Resolve C vs C++ ambiguity — if both score high, prefer C++ (superset)
+  if (scores.c > 3 && scores.cpp >= scores.c) bestLang = 'cpp';
+
+  // Only return a detection if we're reasonably confident (score >= 4)
+  return bestScore >= 4 ? bestLang : 'plain';
+}
 
 const LANGUAGES = [
   { value: 'plain', label: 'Plain Text' },
@@ -32,6 +136,8 @@ const EXPIRY_OPTIONS = [
 export default function CreatePaste() {
   const [content, setContent] = useState('');
   const [language, setLanguage] = useState('plain');
+  const [isAutoDetected, setIsAutoDetected] = useState(false);
+  const [manuallySelected, setManuallySelected] = useState(false);
   const [expiry, setExpiry] = useState('24h');
   const [customId, setCustomId] = useState('');
   const [customIdError, setCustomIdError] = useState('');
@@ -39,6 +145,7 @@ export default function CreatePaste() {
   const [showCliPopup, setShowCliPopup] = useState(false);
   const [hasShownPopup, setHasShownPopup] = useState(false);
   const router = useRouter();
+  const detectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const validateCustomId = (id: string) => {
     if (!id) { setCustomIdError(''); return true; }
@@ -58,6 +165,44 @@ export default function CreatePaste() {
     setCustomIdError('');
     return true;
   };
+
+  // Auto-detect language when content changes (debounced)
+  const handleContentChange = useCallback((newContent: string) => {
+    setContent(newContent);
+
+    // Only auto-detect if the user hasn't manually selected a language
+    if (!manuallySelected) {
+      if (detectTimeoutRef.current) clearTimeout(detectTimeoutRef.current);
+      detectTimeoutRef.current = setTimeout(() => {
+        const detected = detectLanguage(newContent);
+        setLanguage(detected);
+        setIsAutoDetected(detected !== 'plain');
+      }, 500); // 500ms debounce
+    }
+  }, [manuallySelected]);
+
+  // Handle manual language selection
+  const handleLanguageChange = useCallback((value: string) => {
+    setLanguage(value);
+    setManuallySelected(true);
+    setIsAutoDetected(false);
+  }, []);
+
+  // Reset manual override when content is cleared
+  useEffect(() => {
+    if (!content.trim()) {
+      setManuallySelected(false);
+      setIsAutoDetected(false);
+      setLanguage('plain');
+    }
+  }, [content]);
+
+  // Cleanup debounce timeout
+  useEffect(() => {
+    return () => {
+      if (detectTimeoutRef.current) clearTimeout(detectTimeoutRef.current);
+    };
+  }, []);
 
   // CLI popup timer
   useEffect(() => {
@@ -220,7 +365,7 @@ export default function CreatePaste() {
           <div className="lg:col-span-3">
             <CodeEditor
               value={content}
-              onChange={setContent}
+              onChange={handleContentChange}
               language={language}
               placeholder="Paste your code here..."
               height="500px"
@@ -236,7 +381,7 @@ export default function CreatePaste() {
                   <Code className="w-4 h-4 text-emerald-400" />
                   <h3 className="font-semibold text-white">Language</h3>
                 </div>
-                <Select value={language} onValueChange={setLanguage}>
+                <Select value={language} onValueChange={handleLanguageChange}>
                   <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
                     <SelectValue />
                   </SelectTrigger>
@@ -252,6 +397,12 @@ export default function CreatePaste() {
                     ))}
                   </SelectContent>
                 </Select>
+                {isAutoDetected && (
+                  <div className="flex items-center gap-1.5 mt-2">
+                    <Wand2 className="w-3 h-3 text-emerald-400" />
+                    <span className="text-xs text-emerald-400">Auto-detected</span>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -329,7 +480,7 @@ export default function CreatePaste() {
                   <h3 className="font-semibold text-white">Tips</h3>
                 </div>
                 <ul className="text-sm text-slate-300 space-y-2">
-                  <li>• Choose the right language for syntax highlighting.</li>
+                  <li>• Language is auto-detected as you type.</li>
                   <li>• Use expiry dates for sensitive content.</li>
                   <li>• You can use Ctrl+Enter to create paste.</li>
                   <li>• Try our <a href="https://github.com/Sumedhvats/pasteCTL" target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:underline">CLI tool</a> for terminal usage.</li>
