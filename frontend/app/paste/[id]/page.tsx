@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CreditCard as Edit, Copy, Eye, Calendar, Clock, Plus, Download, QrCode, Share2 } from 'lucide-react';
+import { CreditCard as Edit, Copy, Eye, Calendar, Clock, Plus, Download, QrCode, Share2, Code2, X, Check } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { CodeEditor } from '@/components/code-editor';
 import { Header } from '@/components/header';
@@ -30,6 +30,10 @@ export default function PastePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [editedContent, setEditedContent] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [embedModalOpen, setEmbedModalOpen] = useState(false);
+  const [embedCopied, setEmbedCopied] = useState(false);
+  const [embedWidth, setEmbedWidth] = useState('100%');
+  const [embedHeight, setEmbedHeight] = useState('400');
 
   const wsRef = useRef<WebSocket | null>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
@@ -182,6 +186,28 @@ export default function PastePage() {
     window.open(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/pastes/${pasteId}/raw`, '_blank');
   };
 
+  // Embed code helper
+  const getEmbedUrl = () => {
+    const base =
+      typeof window !== 'undefined'
+        ? window.location.origin
+        : 'https://paste.sumedh.app';
+    return `${base}/embed/${pasteId}`;
+  };
+
+  const getEmbedCode = () =>
+    `<iframe\n  src="${getEmbedUrl()}"\n  width="${embedWidth}"\n  height="${embedHeight}"\n  frameborder="0"\n  style="border-radius:8px;overflow:hidden"\n></iframe>`;
+
+  const handleCopyEmbed = async () => {
+    try {
+      await navigator.clipboard.writeText(getEmbedCode());
+      setEmbedCopied(true);
+      setTimeout(() => setEmbedCopied(false), 2000);
+    } catch {
+      // fallback
+    }
+  };
+
   // Create new paste
   const createNewPaste = () => router.push('/');
 
@@ -244,6 +270,13 @@ export default function PastePage() {
             </Button>
             <Button onClick={viewRaw} variant="secondary" className="bg-slate-700 hover:bg-slate-600 text-white">
               Raw
+            </Button>
+            <Button
+              onClick={() => setEmbedModalOpen(true)}
+              variant="secondary"
+              className="bg-slate-700 hover:bg-slate-600 text-white"
+            >
+              <Code2 className="w-4 h-4 mr-2" /> Embed
             </Button>
           </div>
         </div>
@@ -355,6 +388,89 @@ export default function PastePage() {
           </div>
         </div>
       </main>
+
+      {/* Embed Modal */}
+      {embedModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-800 border border-slate-700 rounded-xl max-w-2xl w-full shadow-2xl">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-700">
+              <div className="flex items-center gap-2">
+                <Code2 className="w-5 h-5 text-emerald-400" />
+                <h3 className="font-semibold text-white text-lg">Embed this Paste</h3>
+              </div>
+              <button
+                onClick={() => setEmbedModalOpen(false)}
+                className="text-slate-400 hover:text-white transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-5">
+              {/* Dimension controls */}
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <label className="block text-xs text-slate-400 mb-1.5">Width</label>
+                  <input
+                    type="text"
+                    value={embedWidth}
+                    onChange={(e) => setEmbedWidth(e.target.value)}
+                    className="w-full bg-slate-700 border border-slate-600 text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    placeholder="100% or 800"
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="block text-xs text-slate-400 mb-1.5">Height (px)</label>
+                  <input
+                    type="text"
+                    value={embedHeight}
+                    onChange={(e) => setEmbedHeight(e.target.value)}
+                    className="w-full bg-slate-700 border border-slate-600 text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    placeholder="400"
+                  />
+                </div>
+              </div>
+
+              {/* Generated code */}
+              <div>
+                <label className="block text-xs text-slate-400 mb-1.5">Embed Code</label>
+                <pre className="bg-slate-900 border border-slate-700 rounded-lg p-4 text-sm text-emerald-300 font-mono overflow-x-auto whitespace-pre">{getEmbedCode()}</pre>
+              </div>
+
+              {/* Live preview */}
+              <div>
+                <label className="block text-xs text-slate-400 mb-1.5">Preview</label>
+                <div className="rounded-lg overflow-hidden border border-slate-700">
+                  <iframe
+                    src={getEmbedUrl()}
+                    width="100%"
+                    height={embedHeight}
+                    style={{ border: 'none', display: 'block' }}
+                    title="Paste embed preview"
+                  />
+                </div>
+              </div>
+
+              {/* Copy button */}
+              <Button
+                onClick={handleCopyEmbed}
+                className={`w-full transition-all ${
+                  embedCopied
+                    ? 'bg-emerald-600 hover:bg-emerald-600 text-white'
+                    : 'bg-slate-700 hover:bg-slate-600 text-white'
+                }`}
+              >
+                {embedCopied ? (
+                  <><Check className="w-4 h-4 mr-2" />Copied!</>
+                ) : (
+                  <><Copy className="w-4 h-4 mr-2" />Copy Embed Code</>
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

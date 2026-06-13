@@ -6,10 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Send, Code, Clock, Lightbulb, X, Terminal, Download, Link, Wand2, Upload, FileText } from 'lucide-react';
+import { Send, Code, Clock, Lightbulb, X, Terminal, Download, Link, Wand2, Upload, FileText, Check, ExternalLink, Copy } from 'lucide-react';
 import { CodeEditor } from '@/components/code-editor';
 import { Header } from '@/components/header';
 import { toast } from 'sonner';
+
+const MAX_CHARS = 512_000; // 500KB limit
 
 /**
  * Detects programming language from code content using heuristic pattern matching.
@@ -157,9 +159,31 @@ export default function CreatePaste() {
   const [hasShownPopup, setHasShownPopup] = useState(false);
   const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
+  // Success modal state
+  const [successPaste, setSuccessPaste] = useState<{ id: string; url: string } | null>(null);
+  const [linkCopied, setLinkCopied] = useState(false);
+  const [countdown, setCountdown] = useState(100); // percent for progress bar
   const router = useRouter();
   const detectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const countdownRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Derived size state
+  const charCount = content.length;
+  const sizePercent = Math.min((charCount / MAX_CHARS) * 100, 100);
+  const isOverLimit = charCount > MAX_CHARS;
+  const getSizeColor = () => {
+    if (sizePercent >= 100) return 'bg-red-500';
+    if (sizePercent >= 90) return 'bg-orange-500';
+    if (sizePercent >= 75) return 'bg-yellow-500';
+    return 'bg-emerald-500';
+  };
+  const getSizeTextColor = () => {
+    if (sizePercent >= 100) return 'text-red-400';
+    if (sizePercent >= 90) return 'text-orange-400';
+    if (sizePercent >= 75) return 'text-yellow-400';
+    return 'text-slate-400';
+  };
 
   const validateCustomId = (id: string) => {
     if (!id) { setCustomIdError(''); return true; }
@@ -301,6 +325,11 @@ export default function CreatePaste() {
       return;
     }
 
+    if (isOverLimit) {
+      toast.error('Content exceeds the 500KB limit');
+      return;
+    }
+
     if (customId && !validateCustomId(customId)) {
       toast.error('Invalid custom URL');
       return;
@@ -309,14 +338,11 @@ export default function CreatePaste() {
     setIsCreating(true);
 
     try {
-      // Compute expiry for frontend display and backend
       const expireAt = expiry === 'never' ? null : getExpiryDate(expiry);
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/pastes`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           content,
           language,
@@ -335,18 +361,50 @@ export default function CreatePaste() {
       }
 
       const paste = await response.json();
-
-      // Set expire_at locally if backend doesn't send it
       if (!paste.expire_at && expireAt) paste.expire_at = expireAt;
 
-      toast.success('Paste created successfully!');
-      router.push(`/paste/${paste.id}`);
+      // Show success modal instead of immediately navigating
+      const pasteUrl = `${process.env.NEXT_PUBLIC_FRONTEND_URL || 'https://paste.sumedh.app'}/paste/${paste.id}`;
+      setSuccessPaste({ id: paste.id, url: pasteUrl });
+      setCountdown(100);
+
+      // 2-second countdown then auto-redirect
+      const startTime = Date.now();
+      const duration = 2000;
+      const tick = () => {
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(0, 100 - (elapsed / duration) * 100);
+        setCountdown(remaining);
+        if (remaining > 0) {
+          countdownRef.current = setTimeout(tick, 16);
+        } else {
+          router.push(`/paste/${paste.id}`);
+        }
+      };
+      countdownRef.current = setTimeout(tick, 16);
     } catch (error) {
       toast.error('Failed to create paste');
       console.error('Error creating paste:', error);
     } finally {
       setIsCreating(false);
     }
+  };
+
+  const handleCopyLink = async () => {
+    if (!successPaste) return;
+    try {
+      await navigator.clipboard.writeText(successPaste.url);
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2000);
+    } catch {
+      toast.error('Failed to copy link');
+    }
+  };
+
+  const handleGoToPaste = () => {
+    if (!successPaste) return;
+    if (countdownRef.current) clearTimeout(countdownRef.current);
+    router.push(`/paste/${successPaste.id}`);
   };
 
   const getExpiryDate = (expiry: string): string => {
@@ -381,6 +439,72 @@ export default function CreatePaste() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [content, language, expiry]);
+
+  // Cleanup countdown on unmount
+  useEffect(() => {
+    return () => { if (countdownRef.current) clearTimeout(countdownRef.current); };
+  }, []);
+
+  // Success Modal Component
+  const SuccessModal = () => (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <Card className="bg-slate-800 border-slate-600 max-w-md w-full shadow-2xl">
+        <CardContent className="p-6">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center">
+              <Check className="w-5 h-5 text-emerald-400" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-white">Paste Created!</h3>
+              <p className="text-slate-400 text-sm">Your paste is ready to share.</p>
+            </div>
+          </div>
+
+          {/* URL display */}
+          <div className="flex items-center gap-2 bg-slate-900 rounded-lg px-3 py-2.5 mb-4 border border-slate-700">
+            <Link className="w-4 h-4 text-slate-400 shrink-0" />
+            <span className="text-slate-200 text-sm font-mono truncate flex-1">{successPaste?.url}</span>
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-3 mb-5">
+            <Button
+              onClick={handleCopyLink}
+              className={`flex-1 transition-all ${
+                linkCopied
+                  ? 'bg-emerald-600 hover:bg-emerald-600 text-white'
+                  : 'bg-slate-700 hover:bg-slate-600 text-white'
+              }`}
+            >
+              {linkCopied ? (
+                <><Check className="w-4 h-4 mr-2" />Copied!</>
+              ) : (
+                <><Copy className="w-4 h-4 mr-2" />Copy Link</>
+              )}
+            </Button>
+            <Button
+              onClick={handleGoToPaste}
+              className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white"
+            >
+              <ExternalLink className="w-4 h-4 mr-2" />
+              Go to Paste
+            </Button>
+          </div>
+
+          {/* 2s countdown progress bar */}
+          <div className="space-y-1.5">
+            <p className="text-xs text-slate-500 text-center">Redirecting automatically…</p>
+            <div className="w-full h-1 bg-slate-700 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-emerald-500 rounded-full transition-none"
+                style={{ width: `${countdown}%` }}
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
 
   // CLI Popup Component
   const CliPopup = () => (
@@ -502,6 +626,19 @@ export default function CreatePaste() {
                 placeholder="Paste your code here..."
                 height="500px"
               />
+              {/* Size indicator */}
+              <div className="mt-2 space-y-1.5">
+                <div className="w-full h-1 bg-slate-700 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-300 ${getSizeColor()}`}
+                    style={{ width: `${sizePercent}%` }}
+                  />
+                </div>
+                <div className={`flex justify-between text-xs ${getSizeTextColor()}`}>
+                  <span>{isOverLimit ? '⚠ Exceeds 500KB limit' : ''}</span>
+                  <span>{charCount.toLocaleString()} / {MAX_CHARS.toLocaleString()} chars</span>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -598,8 +735,8 @@ export default function CreatePaste() {
             {/* Create Button */}
             <Button
               onClick={handleCreatePaste}
-              disabled={isCreating || !content.trim()}
-              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white h-12 text-lg font-semibold"
+              disabled={isCreating || !content.trim() || isOverLimit}
+              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white h-12 text-lg font-semibold disabled:opacity-50"
             >
               <Send className="w-5 h-5 mr-2" />
               {isCreating ? 'Creating...' : 'Create Paste'}
@@ -626,6 +763,9 @@ export default function CreatePaste() {
 
       {/* CLI Popup */}
       {showCliPopup && <CliPopup />}
+
+      {/* Success Modal */}
+      {successPaste && <SuccessModal />}
     </div>
   );
 }
