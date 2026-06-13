@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import { format } from 'date-fns';
 import { ExternalLink } from 'lucide-react';
 
@@ -12,6 +14,18 @@ interface Paste {
   expire_at?: string;
   views: number;
 }
+
+/** Maps pasteCTL language values to Prism language identifiers */
+const PRISM_LANGUAGE_MAP: Record<string, string> = {
+  plain: 'text',
+  javascript: 'javascript',
+  python: 'python',
+  java: 'java',
+  cpp: 'cpp',
+  c: 'c',
+  go: 'go',
+  sql: 'sql',
+};
 
 export default function EmbedPage({ params }: { params: { id: string } }) {
   const [paste, setPaste] = useState<Paste | null>(null);
@@ -60,23 +74,35 @@ export default function EmbedPage({ params }: { params: { id: string } }) {
     );
   }
 
-  // Split into lines for line-number rendering
-  const lines = paste.content.split('\n');
+  const prismLang = PRISM_LANGUAGE_MAP[paste.language] || 'text';
 
   return (
     <div style={styles.wrapper}>
-      {/* Scrollable code area */}
+      {/* Syntax-highlighted code area */}
       <div style={styles.codeArea}>
-        <table style={styles.table} cellSpacing={0} cellPadding={0}>
-          <tbody>
-            {lines.map((line, i) => (
-              <tr key={i}>
-                <td style={styles.lineNum}>{i + 1}</td>
-                <td style={styles.lineContent}>{line || '\u00a0'}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <SyntaxHighlighter
+          language={prismLang}
+          style={vscDarkPlus}
+          showLineNumbers
+          customStyle={{
+            margin: 0,
+            padding: '16px',
+            background: '#1e293b',
+            fontSize: 13,
+            lineHeight: '1.6',
+            minHeight: '100%',
+            borderRadius: 0,
+          }}
+          lineNumberStyle={{
+            color: '#64748b',
+            minWidth: '2.5em',
+            paddingRight: '1em',
+            userSelect: 'none' as const,
+          }}
+          wrapLines={false}
+        >
+          {paste.content}
+        </SyntaxHighlighter>
       </div>
 
       {/* Slim footer */}
@@ -98,8 +124,6 @@ export default function EmbedPage({ params }: { params: { id: string } }) {
   );
 }
 
-const FONT = "'JetBrains Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace";
-
 const styles: Record<string, React.CSSProperties> = {
   wrapper: {
     display: 'flex',
@@ -118,33 +142,6 @@ const styles: Record<string, React.CSSProperties> = {
   codeArea: {
     flex: 1,
     overflow: 'auto',
-    padding: '12px 0',
-  },
-  table: {
-    borderCollapse: 'collapse',
-    width: '100%',
-    fontFamily: FONT,
-    fontSize: 13,
-    lineHeight: '22px',
-    color: '#f1f5f9',
-  },
-  lineNum: {
-    userSelect: 'none',
-    textAlign: 'right',
-    paddingRight: 16,
-    paddingLeft: 16,
-    color: '#64748b',
-    minWidth: 48,
-    width: 48,
-    verticalAlign: 'top',
-    fontVariantNumeric: 'tabular-nums',
-    borderRight: '1px solid #334155',
-  },
-  lineContent: {
-    paddingLeft: 16,
-    paddingRight: 16,
-    whiteSpace: 'pre',
-    verticalAlign: 'top',
   },
   footer: {
     flexShrink: 0,
