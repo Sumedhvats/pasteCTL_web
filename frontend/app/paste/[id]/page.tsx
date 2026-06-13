@@ -337,7 +337,7 @@ export default function PastePage() {
                   <div className="bg-white p-3 rounded-lg">
                     <QRCodeSVG
                       id="paste-qr-code"
-                      value={typeof window !== 'undefined' ? window.location.href : `https://paste.sumedh.app/paste/${pasteId}`}
+                      value={pasteId === 'sumedh' ? 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' : (typeof window !== 'undefined' ? window.location.href : `https://paste.sumedh.app/paste/${pasteId}`)}
                       size={140}
                       level="M"
                       bgColor="#ffffff"
