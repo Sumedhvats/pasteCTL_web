@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { CodeEditor } from '@/components/code-editor';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { format } from 'date-fns';
 import { ExternalLink } from 'lucide-react';
 
@@ -13,6 +14,18 @@ interface Paste {
   expire_at?: string;
   views: number;
 }
+
+/** Maps our language values to Prism language identifiers */
+const PRISM_LANGUAGE_MAP: Record<string, string> = {
+  plain: 'text',
+  javascript: 'javascript',
+  python: 'python',
+  java: 'java',
+  cpp: 'cpp',
+  c: 'c',
+  go: 'go',
+  sql: 'sql',
+};
 
 export default function EmbedPage({ params }: { params: { id: string } }) {
   const [paste, setPaste] = useState<Paste | null>(null);
@@ -47,55 +60,127 @@ export default function EmbedPage({ params }: { params: { id: string } }) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-slate-900">
-        <div className="animate-pulse text-slate-400 text-sm">Loading…</div>
+      <div style={styles.center}>
+        <span style={styles.mutedText}>Loading…</span>
       </div>
     );
   }
 
   if (error || !paste) {
     return (
-      <div className="flex items-center justify-center h-screen bg-slate-900">
-        <div className="text-red-400 text-sm">{error || 'Paste not found'}</div>
+      <div style={styles.center}>
+        <span style={{ color: '#f87171', fontSize: 14 }}>{error || 'Paste not found'}</span>
       </div>
     );
   }
 
+  const prismLang = PRISM_LANGUAGE_MAP[paste.language] || 'text';
+
   return (
-    <div className="flex flex-col h-screen bg-slate-900 overflow-hidden">
-      {/* Editor — fills all available space */}
-      <div className="flex-1 overflow-hidden">
-        <CodeEditor
-          value={paste.content}
-          onChange={() => {}}
-          language={paste.language}
-          readOnly={true}
-          height="100%"
-        />
+    <div style={styles.wrapper}>
+      {/* Scrollable code area */}
+      <div style={styles.codeArea}>
+        <SyntaxHighlighter
+          language={prismLang}
+          style={vscDarkPlus}
+          showLineNumbers
+          customStyle={styles.highlighter}
+          lineNumberStyle={styles.lineNumber}
+          wrapLines={false}
+        >
+          {paste.content}
+        </SyntaxHighlighter>
       </div>
 
       {/* Slim footer */}
-      <div className="shrink-0 flex items-center justify-between px-4 py-2 bg-slate-800 border-t border-slate-700">
-        <div className="flex items-center gap-3 text-xs text-slate-400">
-          <span className="bg-slate-700 px-2 py-0.5 rounded text-slate-300 font-mono">
-            {paste.language}
-          </span>
-          <span>
+      <div style={styles.footer}>
+        <div style={styles.footerLeft}>
+          <span style={styles.langBadge}>{paste.language}</span>
+          <span style={styles.mutedText}>
             {format(new Date(paste.created_at), 'MMM dd, yyyy')}
           </span>
-          <span className="text-slate-600">·</span>
-          <span>{paste.views} views</span>
+          <span style={{ color: '#334155' }}>·</span>
+          <span style={styles.mutedText}>{paste.views} views</span>
         </div>
-        <a
-          href={pasteUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-1.5 text-xs text-emerald-400 hover:text-emerald-300 transition-colors font-medium"
-        >
-          <ExternalLink className="w-3 h-3" />
+        <a href={pasteUrl} target="_blank" rel="noopener noreferrer" style={styles.link}>
+          <ExternalLink size={12} style={{ marginRight: 4 }} />
           View on pasteCTL
         </a>
       </div>
     </div>
   );
 }
+
+// Inline styles — no Tailwind dependency needed in embed context
+const styles: Record<string, React.CSSProperties> = {
+  wrapper: {
+    display: 'flex',
+    flexDirection: 'column',
+    height: '100vh',
+    backgroundColor: '#1e293b',
+    overflow: 'hidden',
+    fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+  },
+  center: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: '100vh',
+    backgroundColor: '#1e293b',
+  },
+  codeArea: {
+    flex: 1,
+    overflow: 'auto',
+  },
+  highlighter: {
+    margin: 0,
+    padding: '16px',
+    background: '#1e293b',
+    fontSize: 13,
+    lineHeight: '1.6',
+    minHeight: '100%',
+    borderRadius: 0,
+  },
+  lineNumber: {
+    color: '#64748b',
+    minWidth: '2.5em',
+    paddingRight: '1em',
+    userSelect: 'none',
+  },
+  footer: {
+    flexShrink: 0,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '8px 16px',
+    backgroundColor: '#0f172a',
+    borderTop: '1px solid #1e293b',
+  },
+  footerLeft: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 12,
+    fontSize: 12,
+  },
+  langBadge: {
+    background: '#1e293b',
+    color: '#cbd5e1',
+    padding: '2px 8px',
+    borderRadius: 4,
+    fontFamily: 'monospace',
+    fontSize: 12,
+    border: '1px solid #334155',
+  },
+  mutedText: {
+    color: '#94a3b8',
+    fontSize: 12,
+  },
+  link: {
+    display: 'flex',
+    alignItems: 'center',
+    color: '#34d399',
+    fontSize: 12,
+    textDecoration: 'none',
+    fontFamily: 'system-ui, sans-serif',
+  },
+};
