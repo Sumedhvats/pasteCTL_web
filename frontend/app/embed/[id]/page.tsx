@@ -1,8 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import { format } from 'date-fns';
 import { ExternalLink } from 'lucide-react';
 
@@ -14,18 +12,6 @@ interface Paste {
   expire_at?: string;
   views: number;
 }
-
-/** Maps our language values to Prism language identifiers */
-const PRISM_LANGUAGE_MAP: Record<string, string> = {
-  plain: 'text',
-  javascript: 'javascript',
-  python: 'python',
-  java: 'java',
-  cpp: 'cpp',
-  c: 'c',
-  go: 'go',
-  sql: 'sql',
-};
 
 export default function EmbedPage({ params }: { params: { id: string } }) {
   const [paste, setPaste] = useState<Paste | null>(null);
@@ -74,22 +60,23 @@ export default function EmbedPage({ params }: { params: { id: string } }) {
     );
   }
 
-  const prismLang = PRISM_LANGUAGE_MAP[paste.language] || 'text';
+  // Split into lines for line-number rendering
+  const lines = paste.content.split('\n');
 
   return (
     <div style={styles.wrapper}>
       {/* Scrollable code area */}
       <div style={styles.codeArea}>
-        <SyntaxHighlighter
-          language={prismLang}
-          style={vscDarkPlus}
-          showLineNumbers
-          customStyle={styles.highlighter}
-          lineNumberStyle={styles.lineNumber}
-          wrapLines={false}
-        >
-          {paste.content}
-        </SyntaxHighlighter>
+        <table style={styles.table} cellSpacing={0} cellPadding={0}>
+          <tbody>
+            {lines.map((line, i) => (
+              <tr key={i}>
+                <td style={styles.lineNum}>{i + 1}</td>
+                <td style={styles.lineContent}>{line || '\u00a0'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
       {/* Slim footer */}
@@ -111,7 +98,8 @@ export default function EmbedPage({ params }: { params: { id: string } }) {
   );
 }
 
-// Inline styles — no Tailwind dependency needed in embed context
+const FONT = "'JetBrains Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace";
+
 const styles: Record<string, React.CSSProperties> = {
   wrapper: {
     display: 'flex',
@@ -119,7 +107,6 @@ const styles: Record<string, React.CSSProperties> = {
     height: '100vh',
     backgroundColor: '#1e293b',
     overflow: 'hidden',
-    fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
   },
   center: {
     display: 'flex',
@@ -131,21 +118,33 @@ const styles: Record<string, React.CSSProperties> = {
   codeArea: {
     flex: 1,
     overflow: 'auto',
+    padding: '12px 0',
   },
-  highlighter: {
-    margin: 0,
-    padding: '16px',
-    background: '#1e293b',
+  table: {
+    borderCollapse: 'collapse',
+    width: '100%',
+    fontFamily: FONT,
     fontSize: 13,
-    lineHeight: '1.6',
-    minHeight: '100%',
-    borderRadius: 0,
+    lineHeight: '22px',
+    color: '#f1f5f9',
   },
-  lineNumber: {
-    color: '#64748b',
-    minWidth: '2.5em',
-    paddingRight: '1em',
+  lineNum: {
     userSelect: 'none',
+    textAlign: 'right',
+    paddingRight: 16,
+    paddingLeft: 16,
+    color: '#64748b',
+    minWidth: 48,
+    width: 48,
+    verticalAlign: 'top',
+    fontVariantNumeric: 'tabular-nums',
+    borderRight: '1px solid #334155',
+  },
+  lineContent: {
+    paddingLeft: 16,
+    paddingRight: 16,
+    whiteSpace: 'pre',
+    verticalAlign: 'top',
   },
   footer: {
     flexShrink: 0,
@@ -154,13 +153,12 @@ const styles: Record<string, React.CSSProperties> = {
     justifyContent: 'space-between',
     padding: '8px 16px',
     backgroundColor: '#0f172a',
-    borderTop: '1px solid #1e293b',
+    borderTop: '1px solid #334155',
   },
   footerLeft: {
     display: 'flex',
     alignItems: 'center',
     gap: 12,
-    fontSize: 12,
   },
   langBadge: {
     background: '#1e293b',
@@ -174,6 +172,7 @@ const styles: Record<string, React.CSSProperties> = {
   mutedText: {
     color: '#94a3b8',
     fontSize: 12,
+    fontFamily: 'system-ui, sans-serif',
   },
   link: {
     display: 'flex',
