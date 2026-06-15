@@ -17,7 +17,7 @@ PasteCTL Web is a lightweight pastebin alternative that allows developers to sha
 - **Automatic Cleanup**: Scheduled job to delete expired pastes
 ## Demo
 
-[![pasteCTL CLI Demo](https://img.youtube.com/vi/bcKJLG7hMgU/maxresdefault.jpg)](https://youtu.be/bcKJLG7hMgU)
+[![pasteCTL Web Demo](https://img.youtube.com/vi/bcKJLG7hMgU/maxresdefault.jpg)](https://youtu.be/bcKJLG7hMgU)
 
 > Click the thumbnail above to watch the demo on YouTube.
 
