@@ -15,6 +15,11 @@ PasteCTL Web is a lightweight pastebin alternative that allows developers to sha
 - **Raw Content Access**: Retrieve paste content in raw format via API
 - **CLI Integration**: Access and manage pastes from the command line using [PasteCTL CLI](https://github.com/sumedhvats/pastectl)
 - **Automatic Cleanup**: Scheduled job to delete expired pastes
+## Demo
+
+[![pasteCTL CLI Demo](https://img.youtube.com/vi/bcKJLG7hMgU/maxresdefault.jpg)](https://youtu.be/bcKJLG7hMgU)
+
+> Click the thumbnail above to watch the demo on YouTube.
 
 ## Architecture
 
