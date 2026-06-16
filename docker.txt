@@ -70,3 +70,89 @@ pasteCTL_web main  ? ✗ docker build --no-cache -t paste-frontend frontend
  - LegacyKeyValueFormat: "ENV key=value" should be used instead of legacy "ENV key value" format (line 3)
 
 pasteCTL_web main  ? ❯
+
+
+FROM golang:1.26-alpine as builder
+
+RUN apk add git ca-certificates tzdata
+WORKDIR /backend
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o /app/main ./cmd
+
+FROM alpine:latest as runner
+RUN apk add --no-cache ca-certificates tzdata
+RUN adduser -D -g '' appuser
+WORKDIR /app
+COPY --from=builder /app/main .
+USER appuser
+EXPOSE 8080
+ENTRYPOINT ["./main"]
+
+
+pasteCTL_web main  ❯ docker build --no-cache  backend -t paste_backend
+[+] Building 34.3s (18/18) FINISHED                                                                                                         docker:default
+ => [internal] load build definition from Dockerfile                                                                                                  0.0s
+ => => transferring dockerfile: 466B                                                                                                                  0.0s
+ => WARN: FromAsCasing: 'as' and 'FROM' keywords' casing do not match (line 1)                                                                        0.0s
+ => WARN: FromAsCasing: 'as' and 'FROM' keywords' casing do not match (line 10)                                                                       0.0s
+ => [internal] load metadata for docker.io/library/alpine:latest                                                                                      0.9s
+ => [internal] load metadata for docker.io/library/golang:1.26-alpine                                                                                 0.9s
+ => [internal] load .dockerignore                                                                                                                     0.0s
+ => => transferring context: 34B                                                                                                                      0.0s
+ => CACHED [builder 1/7] FROM docker.io/library/golang:1.26-alpine@sha256:f1ddd9fe14fffc091dd98cb4bfa999f32c5fc77d2f2305ea9f0e2595c5437c14            0.0s
+ => CACHED [runner 1/5] FROM docker.io/library/alpine:latest@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b                  0.0s
+ => [internal] load build context                                                                                                                     0.1s
+ => => transferring context: 1.76kB                                                                                                                   0.0s
+ => [builder 2/7] RUN apk add git ca-certificates tzdata                                                                                              2.7s
+ => [runner 2/5] RUN apk add --no-cache ca-certificates tzdata                                                                                        2.0s
+ => [runner 3/5] RUN adduser -D -g '' appuser                                                                                                         0.4s
+ => [runner 4/5] WORKDIR /app                                                                                                                         0.2s
+ => [builder 3/7] WORKDIR /backend                                                                                                                    0.1s
+ => [builder 4/7] COPY go.mod go.sum ./                                                                                                               0.1s
+ => [builder 5/7] RUN go mod download                                                                                                                12.7s
+ => [builder 6/7] COPY . .                                                                                                                            0.3s
+ => [builder 7/7] RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o /app/main ./cmd                                             15.8s
+ => [runner 5/5] COPY --from=builder /app/main .                                                                                                      0.2s
+ => exporting to image                                                                                                                                0.8s
+ => => exporting layers                                                                                                                               0.7s
+ => => writing image sha256:98d4a8398d65370881db4f2ac7c761de14f37fdabea51b2c262ddfe54d11d09d                                                          0.0s
+ => => naming to docker.io/library/paste_backend                                                                                                      0.0s
+
+
+ FROM node:22-alpine AS builder
+WORKDIR /frontend
+
+ARG NEXT_PUBLIC_BACKEND_URL
+ARG NEXT_PUBLIC_WS_URL
+ENV NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL \
+    NEXT_PUBLIC_WS_URL=$NEXT_PUBLIC_WS_URL \
+    NEXT_TELEMETRY_DISABLED=1
+
+COPY package.json package-lock.json ./
+RUN npm ci --legacy-peer-deps
+
+COPY . .
+RUN npm run build
+
+FROM node:22-alpine AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production \
+    NEXT_TELEMETRY_DISABLED=1 \
+    PORT=3000 \
+    HOSTNAME=0.0.0.0
+
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
+
+COPY --from=builder --chown=nextjs:nodejs /frontend/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /frontend/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /frontend/public ./public
+
+USER nextjs
+EXPOSE 3000
+
+CMD ["node", "server.js"]
+
