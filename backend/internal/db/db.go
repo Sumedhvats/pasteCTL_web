@@ -27,7 +27,20 @@ func Init() {
 	}
 
 	DB = pool
-	log.Println("Database initialized")
+	log.Println("Database connected")
+	createTableSQL := `
+		CREATE TABLE IF NOT EXISTS pastes(
+			id TEXT PRIMARY KEY,
+			content TEXT NOT NULL,
+			language TEXT NOT NULL,
+			created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+			expire_at TIMESTAMP,
+			views INT NOT NULL DEFAULT 0
+		);`
+	if _, err := pool.Exec(context.Background(), createTableSQL); err != nil {
+		log.Fatalf("Failed to run migration: %v\n", err)
+	}
+	log.Println("Database initialized (migration applied)")
 }
 func Close() {
 	if DB != nil {

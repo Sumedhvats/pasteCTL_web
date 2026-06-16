@@ -1,0 +1,72 @@
+FROM golang:1.26
+ENV FRONTEND_URL=http://paste.sumedh.app
+ENV DATABASE_URL=https://notdburl.com
+RUN apt-get install -y --no-install-recommends git ca-certificates tzdata
+WORKDIR /backend
+COPY . .
+RUN go mod download
+RUN go build -o main cmd/main.go
+RUN chmod +x main
+EXPOSE 8080
+CMD ["./main"]
+
+
+
+pasteCTL_web main  ? ✗ docker build backend
+[+] Building 38.5s (12/12) FINISHED                                                   docker:default
+ => [internal] load build definition from Dockerfile                                            0.0s
+ => => transferring dockerfile: 330B                                                            0.0s
+ => [internal] load metadata for docker.io/library/golang:1.26                                  1.0s
+ => [internal] load .dockerignore                                                               0.1s
+ => => transferring context: 34B                                                                0.0s
+ => [1/7] FROM docker.io/library/golang:1.26@sha256:792443b89f65105abba56b9bd5e97f680a80074ac6  0.0s
+ => [internal] load build context                                                               0.1s
+ => => transferring context: 1.62kB                                                             0.0s
+ => CACHED [2/7] RUN apt-get install -y --no-install-recommends git ca-certificates tzdata      0.0s
+ => CACHED [3/7] WORKDIR /backend                                                               0.0s
+ => [4/7] COPY . .                                                                              0.4s
+ => [5/7] RUN go mod download                                                                  12.7s
+ => [6/7] RUN go build -o main cmd/main.go                                                     16.2s
+ => [7/7] RUN chmod +x main                                                                     0.5s
+ => exporting to image                                                                          7.0s
+ => => exporting layers                                                                         7.0s
+ => => writing image sha256:1383a0a76a5a9ac4b6de3852bca2d2bd27983e776156bf926aed29e3f902b0b1    0.0s
+
+pasteCTL_web main  ? ❯
+
+
+FROM node 
+ENV NEXT_PUBLIC_BACKEND_URL = http://paste.sumedh.app
+ENV NEXT_PUBLIC_WS_URL = ws://paste.sumedh.app                                                                   
+WORKDIR /frontend
+COPY . .
+RUN npm install --legacy-peer-deps
+RUN npm run build
+EXPOSE 3000
+CMD ["npm","run","start"]
+
+
+pasteCTL_web main  ? ✗ docker build --no-cache -t paste-frontend frontend
+[+] Building 59.8s (10/10) FINISHED                                                   docker:default
+ => [internal] load build definition from Dockerfile                                            0.1s
+ => => transferring dockerfile: 336B                                                            0.0s
+ => [internal] load metadata for docker.io/library/node:latest                                  0.4s
+ => [internal] load .dockerignore                                                               0.1s
+ => => transferring context: 2B                                                                 0.0s
+ => [1/5] FROM docker.io/library/node:latest@sha256:f9a1756160a9e1c3dca456bc0b185bf8f2f112a677  0.0s
+ => [internal] load build context                                                               2.1s
+ => => transferring context: 2.89MB                                                             2.0s
+ => CACHED [2/5] WORKDIR /frontend                                                              0.0s
+ => [3/5] COPY . .                                                                              9.0s
+ => [4/5] RUN npm install --legacy-peer-deps                                                   22.3s
+ => [5/5] RUN npm run build                                                                    16.6s
+ => exporting to image                                                                          9.0s
+ => => exporting layers                                                                         8.9s
+ => => writing image sha256:0d8d7bed7895820bd484d3331963bc327cdd3c33032876d3960a2f60c86c98b2    0.0s
+ => => naming to docker.io/library/paste-frontend                                               0.0s
+
+ 2 warnings found (use docker --debug to expand):
+ - LegacyKeyValueFormat: "ENV key=value" should be used instead of legacy "ENV key value" format (line 2)
+ - LegacyKeyValueFormat: "ENV key=value" should be used instead of legacy "ENV key value" format (line 3)
+
+pasteCTL_web main  ? ❯

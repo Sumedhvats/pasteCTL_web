@@ -33,7 +33,7 @@ func (h *Handler) CreatePasteHandler(c *gin.Context) {
 	}
 
 	var req CreatePasteRequest
-	if err := c.BindJSON(&req); err != nil {
+	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body or missing fields"})
 		return
 	}
@@ -92,7 +92,7 @@ func (h *Handler) UpdatePasteHandler(c *gin.Context) {
     }
 
     var req UpdatePasteRequest
-    if err := c.BindJSON(&req); err != nil {
+    if err := c.ShouldBindJSON(&req); err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid or incomplete request"})
         return
     }

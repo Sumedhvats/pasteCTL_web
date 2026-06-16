@@ -43,8 +43,7 @@ func main() {
 
 	r.Use(cors.New(config))
 
-	// --- Rate Limiting (rate-limiter-go) ---
-	rateLimit := 60 // default: 60 requests per minute per IP
+	rateLimit := 120
 	if v := os.Getenv("RATE_LIMIT"); v != "" {
 		if parsed, err := strconv.Atoi(v); err == nil && parsed > 0 {
 			rateLimit = parsed
@@ -59,6 +58,9 @@ func main() {
 	r.Use(rateLimitMiddleware.RateLimitMiddleware(rateLimiter, rlConfig))
 	log.Printf("Rate limiting enabled: %d requests/minute per IP", rateLimit)
 
+	r.GET("/api/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{"status": "ok"})
+	})
 	r.POST("/api/pastes", handler.CreatePasteHandler)
 	r.GET("/api/pastes/:id", handler.GetPasteHandler)
 	r.GET("/api/pastes/:id/raw", handler.GetContentHandler)
