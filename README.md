@@ -99,6 +99,73 @@ npm run dev
 
 The frontend will be available at `http://localhost:3000`
 
+### Docker Setup
+
+The easiest way to run the full stack locally is with Docker Compose. No need to install Go, Node.js, or PostgreSQL separately.
+
+#### Prerequisites
+- [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/)
+
+#### Quick Start
+
+```bash
+# Clone and start everything
+git clone https://github.com/sumedhvats/pastectl_web.git
+cd pastectl_web
+docker compose up --build
+```
+
+This starts three containers:
+
+| Service | Port | Description |
+|---------|------|-------------|
+| **Frontend** | `http://localhost:3000` | Next.js app |
+| **Backend** | `http://localhost:8080` | Go API server |
+| **Database** | `localhost:5432` | PostgreSQL 18 |
+
+The database table is created automatically on first startup — no manual migration needed.
+
+#### Common Commands
+
+```bash
+# Start in detached mode (background)
+docker compose up --build -d
+
+# View logs
+docker compose logs -f            # all services
+docker compose logs -f backend    # backend only
+
+# Stop all services
+docker compose down
+
+# Stop and remove volumes (wipes database)
+docker compose down -v
+
+# Rebuild a single service
+docker compose up --build -d backend
+```
+
+#### Customising Environment Variables
+
+Edit `compose.yaml` to change the default values:
+
+```yaml
+backend:
+  environment:
+    - FRONTEND_URL=http://localhost:3000      # CORS allowed origin
+    - DATABASE_URL=postgres://user:password@db:5432/pastectl
+
+frontend:
+  build:
+    args:
+      - NEXT_PUBLIC_BACKEND_URL=http://localhost:8080  # API base URL
+      - NEXT_PUBLIC_WS_URL=ws://localhost:8080         # WebSocket URL
+```
+
+#### Data Persistence
+
+PostgreSQL data is stored in a named Docker volume (`pgdata`). Your pastes survive `docker compose down` and `docker compose up` cycles. To start fresh, use `docker compose down -v` to remove the volume.
+
 ## API Endpoints
 
 ### Paste Operations
