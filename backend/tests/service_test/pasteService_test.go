@@ -102,6 +102,29 @@ func TestPasteService_Update(t *testing.T) {
 	assert.Equal(t, newLang, verifiedPaste.Language)
 }
 
+func TestPasteService_UpdatePreservesLanguage(t *testing.T) {
+	service := setupServiceTest(t)
+
+	// 1. Create a paste with a specific language (e.g., "sql")
+	original, err := service.CreatePaste("SELECT * FROM users;", "sql", 10, "")
+	require.NoError(t, err)
+	assert.Equal(t, "sql", original.Language)
+
+	// 2. Update content without providing a language (empty string)
+	updatedPaste, err := service.UpdatePaste(original.ID, "SELECT * FROM orders;", "")
+	require.NoError(t, err)
+	require.NotNil(t, updatedPaste)
+
+	// 3. Verify the language was preserved as "sql", not defaulted to "text"
+	assert.Equal(t, "sql", updatedPaste.Language)
+
+	// 4. Also verify by fetching from DB
+	verifiedPaste, err := service.GetPaste(original.ID)
+	require.NoError(t, err)
+	assert.Equal(t, "SELECT * FROM orders;", verifiedPaste.Content)
+	assert.Equal(t, "sql", verifiedPaste.Language)
+}
+
 func TestPasteService_GetPaste_Scenarios(t *testing.T) {
 	service := setupServiceTest(t)
 

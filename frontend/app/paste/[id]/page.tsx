@@ -39,6 +39,7 @@ export default function PastePage() {
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const lastSentContentRef = useRef<string>('');
   const hasIncrementedViews = useRef(false);
+  const pasteRef = useRef<Paste | null>(null);
 
   // Fetch paste from backend
   const fetchPaste = useCallback(async () => {
@@ -53,6 +54,7 @@ export default function PastePage() {
 
       const pasteData = await response.json();
       setPaste(pasteData);
+      pasteRef.current = pasteData;
       setEditedContent(pasteData.content);
 
       if (!hasIncrementedViews.current) {
@@ -127,7 +129,7 @@ export default function PastePage() {
         await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/pastes/${pasteId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ content }),
+          body: JSON.stringify({ content, language: pasteRef.current?.language }),
         });
         console.log('Auto-saved paste to backend');
       } catch (err) {

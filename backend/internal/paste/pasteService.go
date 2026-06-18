@@ -26,13 +26,11 @@ var (
     ErrIdTaken       = errors.New("paste URL already taken")
     ErrInvalidId     = errors.New("invalid custom URL")
 )
-
 var validIdPattern = regexp.MustCompile(`^[a-z0-9][a-z0-9-]*[a-z0-9]$`)
 var reservedIds = map[string]bool{
 	"api": true, "paste": true, "raw": true,
 	"ws": true, "admin": true, "new": true,
 }
-
 type pasteService struct{
 	repo db.Repository
 }
@@ -41,7 +39,6 @@ func NewPasteService(r db.Repository)PasteService{
 		repo:r,
 	}
 }
-
 func validateCustomId(id string) error {
 	if len(id) < 3 || len(id) > 30 {
 		return errors.New("custom URL must be 3-30 characters")
@@ -115,15 +112,19 @@ func (s *pasteService) UpdatePaste(id string, content string, lang string) (*db.
         return nil, errors.New("content is required")
     }
 
-    paste := &db.Paste{
-        ID:      id,
-        Content: content,
+    // If no language provided, preserve the existing one from the DB
+    if lang == "" {
+        existing, err := s.repo.GetPaste(id)
+        if err != nil {
+            return nil, fmt.Errorf("paste not found: %w", err)
+        }
+        lang = existing.Language
     }
 
-    if lang != "" {
-        paste.Language = lang
-    } else {
-        paste.Language = "text" // default language
+    paste := &db.Paste{
+        ID:       id,
+        Content:  content,
+        Language: lang,
     }
 
     err := s.repo.UpdatePaste(paste)

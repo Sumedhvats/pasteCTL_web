@@ -262,6 +262,40 @@ func TestUpdatePasteHandler(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
+
+	t.Run("update without language preserves existing", func(t *testing.T) {
+		mockService := new(MockPasteService)
+		handler := httpHandler.NewHandler(mockService)
+		router := setupRouter(handler)
+
+		// When no language is provided, the handler should pass "" to the service,
+		// and the service should preserve the existing language from the DB
+		updatedPaste := &db.Paste{
+			ID:       "abc123",
+			Content:  "updated content",
+			Language: "sql", // service preserves the original language
+		}
+
+		mockService.On("UpdatePaste", "abc123", "updated content", "").Return(updatedPaste, nil).Once()
+
+		body := map[string]interface{}{
+			"content": "updated content",
+			// no "language" field — simulates the frontend auto-save behavior
+		}
+		jsonBody, _ := json.Marshal(body)
+		req := httptest.NewRequest("PUT", "/pastes/abc123", bytes.NewReader(jsonBody))
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		var response db.Paste
+		err := json.NewDecoder(w.Body).Decode(&response)
+		require.NoError(t, err)
+		assert.Equal(t, "sql", response.Language)
+
+		mockService.AssertExpectations(t)
+	})
 }
 
 // TestGetContentHandler tests the GetContent endpoint
