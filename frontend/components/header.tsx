@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Plus, Terminal, Github, Search } from 'lucide-react';
-import Image from 'next/image';
 
 export function Header() {
   const router = useRouter();

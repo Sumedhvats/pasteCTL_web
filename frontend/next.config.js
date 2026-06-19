@@ -1,14 +1,18 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output:'standalone',
+  output: 'standalone',
+  reactStrictMode: true,
+  poweredByHeader: false,
   eslint: {
     ignoreDuringBuilds: true,
+  },
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production' ? { exclude: ['error', 'warn'] } : false,
   },
   images: { unoptimized: true },
   async headers() {
     return [
       {
-        // Allow /embed/* pages to be iframed from any external domain
         source: '/embed/:id*',
         headers: [
           { key: 'X-Frame-Options', value: 'ALLOWALL' },

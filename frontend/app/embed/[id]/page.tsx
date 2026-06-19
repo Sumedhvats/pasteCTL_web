@@ -1,8 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/cjs/styles/prism';
+import { useState, useEffect, useRef } from 'react';
+import Prism from 'prismjs';
+import 'prismjs/components/prism-javascript';
+import 'prismjs/components/prism-python';
+import 'prismjs/components/prism-java';
+import 'prismjs/components/prism-c';
+import 'prismjs/components/prism-cpp';
+import 'prismjs/components/prism-go';
+import 'prismjs/components/prism-sql';
 import { format } from 'date-fns';
 import { ExternalLink } from 'lucide-react';
 
@@ -31,6 +37,7 @@ export default function EmbedPage({ params }: { params: { id: string } }) {
   const [paste, setPaste] = useState<Paste | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const codeRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     const fetchPaste = async () => {
@@ -52,6 +59,17 @@ export default function EmbedPage({ params }: { params: { id: string } }) {
     };
     fetchPaste();
   }, [params.id]);
+
+  // Highlight code after paste loads (and Prism is ready)
+  useEffect(() => {
+    if (paste && codeRef.current) {
+      try {
+        Prism.highlightElement(codeRef.current);
+      } catch {
+        // ignore highlight errors
+      }
+    }
+  }, [paste]);
 
   const pasteUrl =
     typeof window !== 'undefined'
@@ -75,34 +93,17 @@ export default function EmbedPage({ params }: { params: { id: string } }) {
   }
 
   const prismLang = PRISM_LANGUAGE_MAP[paste.language] || 'text';
+  const languageClass = prismLang === 'text' ? 'language-text' : `language-${prismLang}`;
 
   return (
     <div style={styles.wrapper}>
       {/* Syntax-highlighted code area */}
       <div style={styles.codeArea}>
-        <SyntaxHighlighter
-          language={prismLang}
-          style={vscDarkPlus}
-          showLineNumbers
-          customStyle={{
-            margin: 0,
-            padding: '16px',
-            background: '#1e293b',
-            fontSize: 13,
-            lineHeight: '1.6',
-            minHeight: '100%',
-            borderRadius: 0,
-          }}
-          lineNumberStyle={{
-            color: '#64748b',
-            minWidth: '2.5em',
-            paddingRight: '1em',
-            userSelect: 'none' as const,
-          }}
-          wrapLines={false}
-        >
-          {paste.content}
-        </SyntaxHighlighter>
+        <pre className="language-text" style={{ margin: 0, padding: '16px', background: '#1e293b', minHeight: '100%' }}>
+          <code ref={codeRef} className={languageClass} style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, lineHeight: '1.6' }}>
+            {paste.content}
+          </code>
+        </pre>
       </div>
 
       {/* Slim footer */}

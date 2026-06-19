@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef } from 'react';
 import Editor from '@monaco-editor/react';
 
 interface CodeEditorProps {
@@ -21,11 +21,9 @@ export function CodeEditor({
   height = "400px"
 }: CodeEditorProps) {
   const editorRef = useRef<any>(null);
-  const [isEditorReady, setIsEditorReady] = useState(false);
 
   const handleEditorDidMount = (editor: any, monaco: any) => {
     editorRef.current = editor;
-    setIsEditorReady(true);
 
     // Configure Monaco theme
     monaco.editor.defineTheme('pasteCTLTheme', {

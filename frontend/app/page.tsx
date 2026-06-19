@@ -1,11 +1,10 @@
 'use client';
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import { Send, Code, Clock, Lightbulb, X, Terminal, Download, Link, Wand2, Upload, FileText, Check, ExternalLink, Copy } from 'lucide-react';
 import { CodeEditor } from '@/components/code-editor';
 import { Header } from '@/components/header';
@@ -145,6 +144,124 @@ const EXT_TO_LANGUAGE: Record<string, string> = {
   '.go': 'go',
   '.sql': 'sql',
 };
+
+interface SuccessModalProps {
+  url: string;
+  countdown: number;
+  linkCopied: boolean;
+  onCopyLink: () => void;
+  onGoToPaste: () => void;
+}
+
+const SuccessModal = ({ url, countdown, linkCopied, onCopyLink, onGoToPaste }: SuccessModalProps) => (
+  <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <Card className="bg-slate-800 border-slate-600 max-w-md w-full shadow-2xl">
+      <CardContent className="p-6">
+        <div className="flex items-center gap-3 mb-5">
+          <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center">
+            <Check className="w-5 h-5 text-emerald-400" />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-white">Paste Created!</h3>
+            <p className="text-slate-400 text-sm">Your paste is ready to share.</p>
+          </div>
+        </div>
+
+        {/* URL display */}
+        <div className="flex items-center gap-2 bg-slate-900 rounded-lg px-3 py-2.5 mb-4 border border-slate-700">
+          <Link className="w-4 h-4 text-slate-400 shrink-0" />
+          <span className="text-slate-200 text-sm font-mono truncate flex-1">{url}</span>
+        </div>
+
+        {/* Actions */}
+        <div className="flex gap-3 mb-5">
+          <Button
+            onClick={onCopyLink}
+            className={`flex-1 transition-all ${
+              linkCopied
+                ? 'bg-emerald-600 hover:bg-emerald-600 text-white'
+                : 'bg-slate-700 hover:bg-slate-600 text-white'
+            }`}
+          >
+            {linkCopied ? (
+              <><Check className="w-4 h-4 mr-2" />Copied!</>
+            ) : (
+              <><Copy className="w-4 h-4 mr-2" />Copy Link</>
+            )}
+          </Button>
+          <Button
+            onClick={onGoToPaste}
+            className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white"
+          >
+            <ExternalLink className="w-4 h-4 mr-2" />
+            Go to Paste
+          </Button>
+        </div>
+
+        {/* 2s countdown progress bar */}
+        <div className="space-y-1.5">
+          <p className="text-xs text-slate-500 text-center">Redirecting automatically…</p>
+          <div className="w-full h-1 bg-slate-700 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-emerald-500 rounded-full transition-none"
+              style={{ width: `${countdown}%` }}
+            />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  </div>
+);
+
+interface CliPopupProps {
+  onClose: () => void;
+}
+
+const CliPopup = ({ onClose }: CliPopupProps) => (
+  <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <Card className="bg-slate-800 border-slate-600 max-w-md w-full shadow-2xl">
+      <CardContent className="p-6">
+        <div className="flex justify-between items-start mb-4">
+          <div className="flex items-center gap-2">
+            <Terminal className="w-6 h-6 text-emerald-400" />
+            <h3 className="text-xl font-bold text-white">Try pasteCTL CLI</h3>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-slate-400 hover:text-white transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <p className="text-slate-300 mb-6 leading-relaxed">
+          Create and share pastes directly from your terminal! Our CLI tool makes it easy to share code without leaving your workflow.
+        </p>
+
+        <div className="bg-slate-900 rounded-lg p-3 mb-4 border border-slate-600">
+          <code className="text-emerald-400 text-sm">pasteCTL create -f ./main.go</code>
+        </div>
+
+        <div className="flex gap-3">
+          <Button
+            onClick={() => window.open('https://github.com/Sumedhvats/pasteCTL', '_blank')}
+            className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Get CLI
+          </Button>
+          <Button
+            onClick={onClose}
+            variant="outline"
+            className="flex-1 border-slate-600 text-slate-300 hover:bg-slate-700"
+          >
+            Maybe Later
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  </div>
+);
 
 export default function CreatePaste() {
   const [content, setContent] = useState('');
@@ -428,130 +545,22 @@ export default function CreatePaste() {
     return new Date(expireTime).toISOString();
   };
 
-  const handleKeyDown = (e: KeyboardEvent) => {
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
       e.preventDefault();
       handleCreatePaste();
     }
-  };
+  }, [content, language, expiry, customId, isOverLimit]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [content, language, expiry]);
+  }, [handleKeyDown]);
 
   // Cleanup countdown on unmount
   useEffect(() => {
     return () => { if (countdownRef.current) clearTimeout(countdownRef.current); };
   }, []);
-
-  // Success Modal Component
-  const SuccessModal = () => (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <Card className="bg-slate-800 border-slate-600 max-w-md w-full shadow-2xl">
-        <CardContent className="p-6">
-          <div className="flex items-center gap-3 mb-5">
-            <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center">
-              <Check className="w-5 h-5 text-emerald-400" />
-            </div>
-            <div>
-              <h3 className="text-lg font-bold text-white">Paste Created!</h3>
-              <p className="text-slate-400 text-sm">Your paste is ready to share.</p>
-            </div>
-          </div>
-
-          {/* URL display */}
-          <div className="flex items-center gap-2 bg-slate-900 rounded-lg px-3 py-2.5 mb-4 border border-slate-700">
-            <Link className="w-4 h-4 text-slate-400 shrink-0" />
-            <span className="text-slate-200 text-sm font-mono truncate flex-1">{successPaste?.url}</span>
-          </div>
-
-          {/* Actions */}
-          <div className="flex gap-3 mb-5">
-            <Button
-              onClick={handleCopyLink}
-              className={`flex-1 transition-all ${
-                linkCopied
-                  ? 'bg-emerald-600 hover:bg-emerald-600 text-white'
-                  : 'bg-slate-700 hover:bg-slate-600 text-white'
-              }`}
-            >
-              {linkCopied ? (
-                <><Check className="w-4 h-4 mr-2" />Copied!</>
-              ) : (
-                <><Copy className="w-4 h-4 mr-2" />Copy Link</>
-              )}
-            </Button>
-            <Button
-              onClick={handleGoToPaste}
-              className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white"
-            >
-              <ExternalLink className="w-4 h-4 mr-2" />
-              Go to Paste
-            </Button>
-          </div>
-
-          {/* 2s countdown progress bar */}
-          <div className="space-y-1.5">
-            <p className="text-xs text-slate-500 text-center">Redirecting automatically…</p>
-            <div className="w-full h-1 bg-slate-700 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-emerald-500 rounded-full transition-none"
-                style={{ width: `${countdown}%` }}
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-
-  // CLI Popup Component
-  const CliPopup = () => (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <Card className="bg-slate-800 border-slate-600 max-w-md w-full shadow-2xl">
-        <CardContent className="p-6">
-          <div className="flex justify-between items-start mb-4">
-            <div className="flex items-center gap-2">
-              <Terminal className="w-6 h-6 text-emerald-400" />
-              <h3 className="text-xl font-bold text-white">Try pasteCTL CLI</h3>
-            </div>
-            <button
-              onClick={() => setShowCliPopup(false)}
-              className="text-slate-400 hover:text-white transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-          
-          <p className="text-slate-300 mb-6 leading-relaxed">
-            Create and share pastes directly from your terminal! Our CLI tool makes it easy to share code without leaving your workflow.
-          </p>
-          
-          <div className="bg-slate-900 rounded-lg p-3 mb-4 border border-slate-600">
-            <code className="text-emerald-400 text-sm">pasteCTL create -f ./main.go</code>
-          </div>
-          
-          <div className="flex gap-3">
-            <Button
-              onClick={() => window.open('https://github.com/Sumedhvats/pasteCTL', '_blank')}
-              className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Get CLI
-            </Button>
-            <Button
-              onClick={() => setShowCliPopup(false)}
-              variant="outline"
-              className="flex-1 border-slate-600 text-slate-300 hover:bg-slate-700"
-            >
-              Maybe Later
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
 
   return (
     <div className="min-h-screen bg-slate-900">
@@ -762,10 +771,18 @@ export default function CreatePaste() {
       </main>
 
       {/* CLI Popup */}
-      {showCliPopup && <CliPopup />}
+      {showCliPopup && <CliPopup onClose={() => setShowCliPopup(false)} />}
 
       {/* Success Modal */}
-      {successPaste && <SuccessModal />}
+      {successPaste && (
+        <SuccessModal
+          url={successPaste.url}
+          countdown={countdown}
+          linkCopied={linkCopied}
+          onCopyLink={handleCopyLink}
+          onGoToPaste={handleGoToPaste}
+        />
+      )}
     </div>
   );
 }
