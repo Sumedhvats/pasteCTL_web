@@ -27,7 +27,7 @@ PasteCTL Web is a lightweight pastebin alternative that allows developers to sha
 - **Framework**: Next.js with React
 - **Styling**: Tailwind CSS
 - **Deployment**: AWS Amplify
-- **Live URL**: [paste.sumedh.app](https://www.paste.sumedh.app)
+- **Live URL**: [paste.svats.me](https://www.paste.svats.me)
 
 ### Backend
 - **Language**: Go 1.24.0

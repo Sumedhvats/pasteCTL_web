@@ -177,11 +177,10 @@ const SuccessModal = ({ url, countdown, linkCopied, onCopyLink, onGoToPaste }: S
         <div className="flex gap-3 mb-5">
           <Button
             onClick={onCopyLink}
-            className={`flex-1 transition-all ${
-              linkCopied
+            className={`flex-1 transition-all ${linkCopied
                 ? 'bg-emerald-600 hover:bg-emerald-600 text-white'
                 : 'bg-slate-700 hover:bg-slate-600 text-white'
-            }`}
+              }`}
           >
             {linkCopied ? (
               <><Check className="w-4 h-4 mr-2" />Copied!</>
@@ -481,7 +480,7 @@ export default function CreatePaste() {
       if (!paste.expire_at && expireAt) paste.expire_at = expireAt;
 
       // Show success modal instead of immediately navigating
-      const pasteUrl = `${process.env.NEXT_PUBLIC_FRONTEND_URL || 'https://paste.sumedh.app'}/paste/${paste.id}`;
+      const pasteUrl = `${process.env.NEXT_PUBLIC_FRONTEND_URL || 'https://paste.svats.me'}/paste/${paste.id}`;
       setSuccessPaste({ id: paste.id, url: pasteUrl });
       setCountdown(100);
 
@@ -565,7 +564,7 @@ export default function CreatePaste() {
   return (
     <div className="min-h-screen bg-slate-900">
       <Header />
-      
+
       <main className="max-w-7xl mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white mb-2">Create New Paste</h1>
@@ -616,9 +615,8 @@ export default function CreatePaste() {
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
-              className={`relative transition-all duration-200 rounded-lg ${
-                isDragOver ? 'ring-2 ring-emerald-400 ring-offset-2 ring-offset-slate-900' : ''
-              }`}
+              className={`relative transition-all duration-200 rounded-lg ${isDragOver ? 'ring-2 ring-emerald-400 ring-offset-2 ring-offset-slate-900' : ''
+                }`}
             >
               {isDragOver && (
                 <div className="absolute inset-0 bg-emerald-500/10 backdrop-blur-sm z-10 rounded-lg flex items-center justify-center border-2 border-dashed border-emerald-400">
@@ -666,8 +664,8 @@ export default function CreatePaste() {
                   </SelectTrigger>
                   <SelectContent className="bg-slate-700 border-slate-600">
                     {LANGUAGES.map((lang) => (
-                      <SelectItem 
-                        key={lang.value} 
+                      <SelectItem
+                        key={lang.value}
                         value={lang.value}
                         className="text-white hover:bg-slate-600"
                       >
@@ -707,7 +705,7 @@ export default function CreatePaste() {
                   <p className="text-red-400 text-xs mt-1">{customIdError}</p>
                 )}
                 {customId && !customIdError && (
-                  <p className="text-slate-400 text-xs mt-1">paste.sumedh.app/paste/{customId}</p>
+                  <p className="text-slate-400 text-xs mt-1">paste.svats.me/paste/{customId}</p>
                 )}
                 {!customId && (
                   <p className="text-slate-500 text-xs mt-1">Leave empty for a random URL</p>
@@ -728,8 +726,8 @@ export default function CreatePaste() {
                   </SelectTrigger>
                   <SelectContent className="bg-slate-700 border-slate-600">
                     {EXPIRY_OPTIONS.map((option) => (
-                      <SelectItem 
-                        key={option.value} 
+                      <SelectItem
+                        key={option.value}
                         value={option.value}
                         className="text-white hover:bg-slate-600"
                       >

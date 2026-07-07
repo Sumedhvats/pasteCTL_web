@@ -19,6 +19,7 @@ import (
 	"github.com/sumedhvats/rate-limiter-go/pkg/limiter"
 	"github.com/sumedhvats/rate-limiter-go/pkg/storage"
 )
+
 func main() {
 	db.Init()
 	defer db.Close()
@@ -28,13 +29,13 @@ func main() {
 	handler := http.NewHandler(pasteService)
 	log.Println("Server starting on :8080...")
 	r := gin.Default()
-	err:=godotenv.Load()
-	if err!=nil {
+	err := godotenv.Load()
+	if err != nil {
 		fmt.Print("cannot load env")
 	}
-	frontend_url:=os.Getenv("FRONTEND_URL")
+	frontend_url := os.Getenv("FRONTEND_URL")
 	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"https://www.paste.sumedh.app","https://www.paste.sumedh.app/","https://paste.sumedh.app","https://paste.sumedh.app/","https://localhost:3000", frontend_url}
+	config.AllowOrigins = []string{"https://www.paste.svats.me", "https://www.paste.svats.me/", "https://paste.svats.me", "https://paste.svats.me/", "https://localhost:3000", frontend_url}
 	config.AllowMethods = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"}
 	config.AllowHeaders = []string{"Origin", "Content-Type", "Authorization", "Accept", "User-Agent", "Cache-Control", "Pragma"}
 	config.ExposeHeaders = []string{"Content-Length"}

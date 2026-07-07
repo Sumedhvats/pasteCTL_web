@@ -74,7 +74,7 @@ export default function EmbedPage({ params }: { params: { id: string } }) {
   const pasteUrl =
     typeof window !== 'undefined'
       ? `${window.location.origin}/paste/${params.id}`
-      : `https://paste.sumedh.app/paste/${params.id}`;
+      : `https://paste.svats.me/paste/${params.id}`;
 
   if (isLoading) {
     return (

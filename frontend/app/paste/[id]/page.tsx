@@ -193,7 +193,7 @@ export default function PastePage() {
     const base =
       typeof window !== 'undefined'
         ? window.location.origin
-        : 'https://paste.sumedh.app';
+        : 'https://paste.svats.me';
     return `${base}/embed/${pasteId}`;
   };
 
@@ -339,7 +339,7 @@ export default function PastePage() {
                   <div className="bg-white p-3 rounded-lg">
                     <QRCodeSVG
                       id="paste-qr-code"
-                      value={pasteId === 'sumedh' ? 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' : (typeof window !== 'undefined' ? window.location.href : `https://paste.sumedh.app/paste/${pasteId}`)}
+                      value={pasteId === 'sumedh' ? 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' : (typeof window !== 'undefined' ? window.location.href : `https://paste.svats.me/paste/${pasteId}`)}
                       size={140}
                       level="M"
                       bgColor="#ffffff"
@@ -457,11 +457,10 @@ export default function PastePage() {
               {/* Copy button */}
               <Button
                 onClick={handleCopyEmbed}
-                className={`w-full transition-all ${
-                  embedCopied
+                className={`w-full transition-all ${embedCopied
                     ? 'bg-emerald-600 hover:bg-emerald-600 text-white'
                     : 'bg-slate-700 hover:bg-slate-600 text-white'
-                }`}
+                  }`}
               >
                 {embedCopied ? (
                   <><Check className="w-4 h-4 mr-2" />Copied!</>
