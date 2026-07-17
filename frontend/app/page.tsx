@@ -6,7 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
 import { Send, Code, Clock, Lightbulb, X, Terminal, Download, Link, Wand2, Upload, FileText, Check, ExternalLink, Copy } from 'lucide-react';
-import { CodeEditor } from '@/components/code-editor';
+import dynamic from 'next/dynamic';
+const CodeEditor = dynamic(() => import('@/components/code-editor').then(mod => mod.CodeEditor), {
+  ssr: false,
+  loading: () => <div className="h-[500px] w-full bg-slate-800 rounded-lg animate-pulse border border-slate-700" />
+});
 import { Header } from '@/components/header';
 import { toast } from 'sonner';
 
@@ -162,7 +166,7 @@ const SuccessModal = ({ url, countdown, linkCopied, onCopyLink, onGoToPaste }: S
             <Check className="w-5 h-5 text-emerald-400" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-white">Paste Created!</h3>
+            <h2 className="text-lg font-bold text-white">Paste Created!</h2>
             <p className="text-slate-400 text-sm">Your paste is ready to share.</p>
           </div>
         </div>
@@ -223,7 +227,7 @@ const CliPopup = ({ onClose }: CliPopupProps) => (
         <div className="flex justify-between items-start mb-4">
           <div className="flex items-center gap-2">
             <Terminal className="w-6 h-6 text-emerald-400" />
-            <h3 className="text-xl font-bold text-white">Try pasteCTL CLI</h3>
+            <h2 className="text-xl font-bold text-white">Try pasteCTL CLI</h2>
           </div>
           <button
             onClick={onClose}
@@ -656,7 +660,7 @@ export default function CreatePaste() {
               <CardContent className="p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <Code className="w-4 h-4 text-emerald-400" />
-                  <h3 className="font-semibold text-white">Language</h3>
+                  <h2 className="font-semibold text-white">Language</h2>
                 </div>
                 <Select value={language} onValueChange={handleLanguageChange}>
                   <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
@@ -688,7 +692,7 @@ export default function CreatePaste() {
               <CardContent className="p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <Link className="w-4 h-4 text-emerald-400" />
-                  <h3 className="font-semibold text-white">Custom URL</h3>
+                  <h2 className="font-semibold text-white">Custom URL</h2>
                 </div>
                 <input
                   type="text"
@@ -718,7 +722,7 @@ export default function CreatePaste() {
               <CardContent className="p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <Clock className="w-4 h-4 text-emerald-400" />
-                  <h3 className="font-semibold text-white">Expiry</h3>
+                  <h2 className="font-semibold text-white">Expiry</h2>
                 </div>
                 <Select value={expiry} onValueChange={setExpiry}>
                   <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
@@ -754,7 +758,7 @@ export default function CreatePaste() {
               <CardContent className="p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <Lightbulb className="w-4 h-4 text-yellow-400" />
-                  <h3 className="font-semibold text-white">Tips</h3>
+                  <h2 className="font-semibold text-white">Tips</h2>
                 </div>
                 <ul className="text-sm text-slate-300 space-y-2">
                   <li>• Language is auto-detected as you type.</li>

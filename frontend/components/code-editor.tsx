@@ -30,7 +30,7 @@ export function CodeEditor({
       base: 'vs-dark',
       inherit: true,
       rules: [
-        { token: 'comment', foreground: '6B7280', fontStyle: 'italic' },
+        { token: 'comment', foreground: '94A3B8', fontStyle: 'italic' },
         { token: 'keyword', foreground: '10B981' },
         { token: 'string', foreground: 'FDE047' },
         { token: 'number', foreground: 'F472B6' },
@@ -44,7 +44,7 @@ export function CodeEditor({
         'editor.selectionBackground': '#475569',
         'editorCursor.foreground': '#10B981',
         'editorGutter.background': '#1E293B',
-        'editorLineNumber.foreground': '#64748B',
+        'editorLineNumber.foreground': '#94A3B8',
         'editorLineNumber.activeForeground': '#E2E8F0',
         'editor.findMatchBackground': '#374151',
         'editor.findMatchHighlightBackground': '#4B5563',

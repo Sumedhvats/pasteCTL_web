@@ -7,7 +7,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CreditCard as Edit, Copy, Eye, Calendar, Clock, Plus, Download, QrCode, Share2, Code2, X, Check } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
-import { CodeEditor } from '@/components/code-editor';
+import dynamic from 'next/dynamic';
+const CodeEditor = dynamic(() => import('@/components/code-editor').then(mod => mod.CodeEditor), {
+  ssr: false,
+  loading: () => <div className="h-[500px] w-full bg-slate-800 rounded-lg animate-pulse border border-slate-700" />
+});
 import { Header } from '@/components/header';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -299,7 +303,7 @@ export default function PastePage() {
               <CardContent className="p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <Eye className="w-4 h-4 text-emerald-400" />
-                  <h3 className="font-semibold text-white">Paste Info</h3>
+                  <h2 className="font-semibold text-white">Paste Info</h2>
                 </div>
                 <div className="space-y-4">
                   <div>
@@ -333,7 +337,7 @@ export default function PastePage() {
               <CardContent className="p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <QrCode className="w-4 h-4 text-emerald-400" />
-                  <h3 className="font-semibold text-white">Share</h3>
+                  <h2 className="font-semibold text-white">Share</h2>
                 </div>
                 <div className="flex flex-col items-center gap-3">
                   <div className="bg-white p-3 rounded-lg">
@@ -344,6 +348,7 @@ export default function PastePage() {
                       level="M"
                       bgColor="#ffffff"
                       fgColor="#1e293b"
+                      title="QR code to share this paste"
                     />
                   </div>
                   <p className="text-xs text-slate-400 text-center">Scan to open this paste</p>
@@ -399,7 +404,7 @@ export default function PastePage() {
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-700">
               <div className="flex items-center gap-2">
                 <Code2 className="w-5 h-5 text-emerald-400" />
-                <h3 className="font-semibold text-white text-lg">Embed this Paste</h3>
+                <h2 className="font-semibold text-white text-lg">Embed this Paste</h2>
               </div>
               <button
                 onClick={() => setEmbedModalOpen(false)}
