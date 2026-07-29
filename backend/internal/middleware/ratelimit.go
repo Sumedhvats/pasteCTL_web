@@ -19,7 +19,6 @@ func RateLimitMiddleware(rateLimiter limiter.Limiter, cfg limiter.Config) gin.Ha
 			c.Next()
 			return
 		}
-
 		c.Header("X-RateLimit-Limit", strconv.Itoa(cfg.Rate))
 
 		if !allowed {

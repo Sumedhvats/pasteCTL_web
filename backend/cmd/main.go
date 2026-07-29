@@ -44,7 +44,7 @@ func main() {
 
 	r.Use(cors.New(config))
 
-	rateLimit := 120
+	rateLimit := 10
 	if v := os.Getenv("RATE_LIMIT"); v != "" {
 		if parsed, err := strconv.Atoi(v); err == nil && parsed > 0 {
 			rateLimit = parsed
